@@ -47,7 +47,20 @@ class _CategoryTabsState extends State<CategoryTabs>
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black, // optional: match screenshot background
+      
+      decoration: BoxDecoration(
+        color: AppColors.wakaSurface,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.wakaStroke,
+            width: 2
+          ),
+          bottom: BorderSide(
+            color: AppColors.wakaStroke,
+            width: 2
+          ),
+        )
+      ), // optional: match screenshot background
       child: TabBar(
         controller: _tabController,
         isScrollable: true,
@@ -56,8 +69,9 @@ class _CategoryTabsState extends State<CategoryTabs>
         unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500),
         labelColor: Colors.white,
         unselectedLabelColor: AppColors.textSecondary,
-        indicatorColor: AppColors.primary,     // glowing blue line
-        indicatorWeight: 3,                    // thickness of the line
+        indicatorColor: AppColors.wakaBlue,     // glowing blue line
+        indicatorWeight: 3,  
+        indicatorSize: TabBarIndicatorSize.tab,                  // thickness of the line
         tabs: widget.categories
             .map((c) => Tab(text: c))
             .toList(),
