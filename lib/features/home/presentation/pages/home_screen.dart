@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
           
           // Category Tabs
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 0),
             child: CategoryTabs(
               onCategoryChanged: (index) {
                 setState(() {
