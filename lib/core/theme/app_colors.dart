@@ -2,7 +2,7 @@ import 'dart:ui';
 
 class AppColors {
   // Light Theme Colors
-  static Color primary = HexColor.fromHex("#E11D48");
+  static Color primary = HexColor.fromHex("#101010");
   static Color black = HexColor.fromHex("#000000");
   static Color green = HexColor.fromHex("#10B981");
   static Color white = HexColor.fromHex("#FFFFFF");
@@ -19,7 +19,7 @@ class AppColors {
   static Color orange = HexColor.fromHex("#FB8C00");
 
   // Dark Theme Colors
-  static Color darkPrimary = HexColor.fromHex("#F43F5E"); // Slightly lighter primary for dark theme
+  static Color darkPrimary = HexColor.fromHex("#101010"); // Slightly lighter primary for dark theme
   static Color darkBackground = HexColor.fromHex("#0F172A"); // Dark slate background
   static Color darkSurface = HexColor.fromHex("#1E293B"); // Dark surface color
   static Color darkContainer = HexColor.fromHex("#334155"); // Dark container
@@ -27,6 +27,28 @@ class AppColors {
   static Color darkTextPrimary = HexColor.fromHex("#F8FAFC"); // Light text for dark theme
   static Color darkTextSecondary = HexColor.fromHex("#CBD5E1"); // Secondary text for dark theme
   static Color darkTextStroke = HexColor.fromHex("#94A3B8"); // Muted text for dark theme
+
+
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF212529);
+  static const Color textSecondary = Color(0xFF6C757D);
+  static const Color textTertiary = Color(0xFFADB5BD);
+  
+  // Accent colors
+  static const Color success = Color(0xFF38B000);
+  static const Color warning = Color(0xFFFFBE0B);
+  static const Color error = Color(0xFFE63946);
+
+  //WAKAFIT COLORS
+
+  static const Color wakaGreen = Color(0xFFB4FF39);
+  static const Color wakaBackground = Color(0xFF0F0F0F);
+  static const Color wakaSurface = Color(0xFF1A1A1A);
+  static const Color wakaStroke = Color(0xFF262626);
+  static const Color wakaTextPrimary = Color(0xFFFFFFFF);
+  static const Color wakaTextSecondary = Color(0xFFB8B8B8);
+  static const Color wakaBlue = Color(0xFF00D4FF);
+  
 }
 
 extension HexColor on Color {

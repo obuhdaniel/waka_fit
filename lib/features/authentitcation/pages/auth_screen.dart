@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:waka_fit/core/theme/text_extension.dart';
 import 'package:waka_fit/features/authentitcation/pages/providers/auth_provider.dart';
-import 'package:waka_fit/features/home/pages/home_screen.dart';
+import 'package:waka_fit/features/home/presentation/pages/home_screen.dart';
 import 'package:waka_fit/shared/providers/theme_provider.dart';
 import 'package:waka_fit/shared/providers/utils/secure_storage.dart';
 import 'package:waka_fit/shared/widgets/state_widget.dart';
@@ -332,39 +332,6 @@ await context.read<AppAuthProvider>().signInWithCredential(credential);
                                 ),
         
                                 const SizedBox(height: 40),
-        
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color:
-                                        themeProvider.getInputFillColor(context),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: themeProvider.isDarkMode
-                                            ? Colors.black.withOpacity(0.3)
-                                            : Colors.black.withOpacity(0.08),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      _buildTabButton(
-                                        "Sign In",
-                                        !isSignUp,
-                                        () => setState(() => isSignUp = false),
-                                      ),
-                                      _buildTabButton(
-                                        "Create Account",
-                                        isSignUp,
-                                        () => setState(() => isSignUp = true),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-        
-                                const SizedBox(height: 32),
         
                                 Form(
                                   key: _formKey,

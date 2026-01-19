@@ -1,14 +1,13 @@
-import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 import 'package:waka_fit/features/authentitcation/pages/auth_screen.dart';
-import 'package:waka_fit/features/home/pages/home_screen.dart';
+import 'package:waka_fit/features/home/presentation/pages/home_screen.dart';
+import 'package:waka_fit/features/onboarding/personalization_screen.dart';
 import 'package:waka_fit/features/profile/profile_page.dart';
+import 'package:waka_fit/shared/helpers/preferences_manager.dart';
 import 'package:waka_fit/shared/providers/user_provider.dart';
-import 'package:waka_fit/shared/providers/utils/secure_storage.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -145,13 +144,22 @@ Future<void> _validateSessionAndNavigate() async {
     }
   }
 
-  void _goToHome() {
-    if (context.mounted) {
+  Future<void> _goToHome() async {
+    final prefsManager = PreferencesManager();
+  final isSetupCompleted = await prefsManager.isSetupCompleted();
+
+    if (context.mounted && isSetupCompleted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const ProfilePage()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else if (context.mounted && !isSetupCompleted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PersonalizationSetupScreen()),
       );
     }
+
   }
 
   @override
