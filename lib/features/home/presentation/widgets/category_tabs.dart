@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
 
 class CategoryTabs extends StatefulWidget {
@@ -65,9 +66,10 @@ class _CategoryTabsState extends State<CategoryTabs>
         controller: _tabController,
         isScrollable: true,
         labelPadding: const EdgeInsets.symmetric(horizontal: 20),
-        labelStyle: TextStyle(fontWeight: FontWeight.bold),
-        unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500),
+        labelStyle: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500),
         labelColor: Colors.white,
+
         unselectedLabelColor: AppColors.textSecondary,
         indicatorColor: AppColors.wakaBlue,     // glowing blue line
         indicatorWeight: 3,  

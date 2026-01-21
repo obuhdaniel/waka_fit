@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
 class TrendingCard {
   final String title;
@@ -44,14 +45,16 @@ class TrendingSection extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: GoogleFonts.inter(
+                  color: AppColors.wakaTextPrimary
+                )
               ),
               TextButton(
                 onPressed: onSeeAll,
                 child: Text(
                   'See All',
-                  style: TextStyle(
-                    color: AppColors.primary,
+                  style: GoogleFonts.inter(
+                    color: AppColors.wakaBlue,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -74,45 +77,35 @@ class TrendingSection extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildTrendingCard(TrendingCard card) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            card.gradientStart ?? AppColors.primary,
-            card.gradientEnd ?? AppColors.darkPrimary,
-          ],
+Widget _buildTrendingCard(TrendingCard card) {
+  return Container(
+    width: 250,
+    margin: const EdgeInsets.only(right: 12),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      image: card.imageUrl != null
+          ? DecorationImage(
+              image: NetworkImage(card.imageUrl!),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.4),
+                BlendMode.darken,
+              ),
+            )
+          : null,
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withOpacity(0.3),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      ],
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(16),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: ColorFiltered(
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.2),
-                  BlendMode.darken,
-                ),
-                child: Container(
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
+          // CONTENT OVERLAY
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -131,54 +124,61 @@ class TrendingSection extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  card.subtitle,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (card.followers != null) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.group,
-                        color: Colors.white70,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        card.followers!,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
+               Row(
+  children: [
+    // Tag / Subtitle chip
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.wakaBlue.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.wakaBlue.withOpacity(0.4),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        card.subtitle,
+        style: GoogleFonts.inter(
+          color: AppColors.wakaBlue,
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+
+    const SizedBox(width: 12),
+
+    if (card.followers != null)
+      Row(
+        children: [
+          Icon(
+            Icons.people_alt_rounded,
+            color: Colors.white.withOpacity(0.85),
+            size: 16,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            card.followers!,
+            style: GoogleFonts.inter(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          if (card.type == 'coach')
-            const Positioned(
-              top: 12,
-              right: 12,
-              child: Chip(
-                label: Text('Coach'),
-                backgroundColor: Colors.white,
-                labelStyle: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              ),
-            ),
         ],
       ),
-    );
-  }
+  ],
+)
+],
+            ),
+          ),
+
+                ],
+      ),
+    ),
+  );
+}
 }

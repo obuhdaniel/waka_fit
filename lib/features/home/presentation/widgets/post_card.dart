@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
 
 class PostCard extends StatelessWidget {
@@ -33,7 +34,16 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.wakaSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.wakaStroke,
+          width: 2
+        )
+
+      ),
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -54,13 +64,18 @@ class PostCard extends StatelessWidget {
                     children: [
                       Text(
                         userName,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: GoogleFonts.inter(
+                          color: AppColors.wakaTextPrimary,
+                          fontWeight: FontWeight.w500
+                        ),
                       ),
+                      SizedBox(height: 8,),
                       Text(
                         userTitle,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textTertiary,
-                            ),
+                        style: GoogleFonts.inter(
+                          color: AppColors.wakaTextSecondary,
+                          fontSize: 12
+                        ),
                       ),
                     ],
                   ),
@@ -79,12 +94,20 @@ class PostCard extends StatelessWidget {
             // Post content
             Text(
               postTitle,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: GoogleFonts.inter(
+                color: AppColors.wakaTextPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w500
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               postDescription,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: AppColors.wakaTextPrimary
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -92,21 +115,21 @@ class PostCard extends StatelessWidget {
             
             // Post image
             Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(
-                  image: NetworkImage(postImageUrl),
-                  fit: BoxFit.cover,
-                ),
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              image: DecorationImage(
+                image: NetworkImage(postImageUrl),
+                fit: BoxFit.cover,
               ),
             ),
+          ),
             const SizedBox(height: 16),
             
             // Stats
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 _buildStatButton(
                   icon: Icons.favorite_border,
@@ -125,11 +148,10 @@ class PostCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
             
             // View full post
             Align(
-              alignment: Alignment.centerRight,
+              alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: onTap,
                 child: Row(
@@ -138,7 +160,7 @@ class PostCard extends StatelessWidget {
                     Text(
                       'View Full Post',
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: AppColors.wakaBlue,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -146,7 +168,7 @@ class PostCard extends StatelessWidget {
                     Icon(
                       Icons.arrow_forward,
                       size: 16,
-                      color: AppColors.primary,
+                      color: AppColors.wakaBlue,
                     ),
                   ],
                 ),

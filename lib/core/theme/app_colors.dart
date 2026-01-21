@@ -48,6 +48,7 @@ class AppColors {
   static const Color wakaTextPrimary = Color(0xFFFFFFFF);
   static const Color wakaTextSecondary = Color(0xFFB8B8B8);
   static const Color wakaBlue = Color(0xFF00D4FF);
+  static const Color wakaField = Color(0xFF242424);
   
 }
 
