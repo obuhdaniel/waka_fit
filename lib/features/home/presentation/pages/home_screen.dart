@@ -7,6 +7,7 @@ import 'package:waka_fit/features/home/presentation/widgets/coaches/coaches_scre
 import 'package:waka_fit/features/home/presentation/widgets/fyp.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/post_card.dart';
+import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/top_bar.dart';
 import 'package:waka_fit/features/home/presentation/widgets/trending_card.dart';
 
@@ -82,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       case 2: // Coaches
         return GymScreen(
+        );
+      case 3:
+        return RestaurantScreen(
         );
         
 

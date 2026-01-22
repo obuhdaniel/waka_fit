@@ -74,6 +74,8 @@ class _GymScreenState extends State<GymScreen> {
         phone: '(347) 555-1234',
         website: 'powerhousefitness.com',
         specialtyTags: ['Strength', 'Cardio', '24/7', 'Premium'],
+        about:
+            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
       ),
       GymModel(
         id: '2',
@@ -96,6 +98,9 @@ class _GymScreenState extends State<GymScreen> {
         phone: '(347) 555-5678',
         website: 'crossfitcentral.com',
         specialtyTags: ['CrossFit', 'Strength', 'Community', 'Coaching'],
+         about:
+            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
+
       ),
       GymModel(
         id: '3',
@@ -119,6 +124,9 @@ class _GymScreenState extends State<GymScreen> {
         phone: '(347) 555-9012',
         website: 'yogaharmony.com',
         specialtyTags: ['Yoga', 'Meditation', 'Holistic', 'Wellness'],
+         about:
+            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
+
       ),
       GymModel(
         id: '4',
@@ -142,6 +150,9 @@ class _GymScreenState extends State<GymScreen> {
         phone: '(347) 555-3456',
         website: 'eliteperformance.com',
         specialtyTags: ['Performance', 'Sports', 'Recovery', 'Training'],
+         about:
+            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
+
       ),
       GymModel(
         id: '5',
@@ -165,6 +176,9 @@ class _GymScreenState extends State<GymScreen> {
         phone: '(347) 555-7890',
         website: 'urbanfitclub.com',
         specialtyTags: ['Modern', 'All-in-One', 'Family', 'Classes'],
+         about:
+            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
+
       ),
       GymModel(
         id: '6',
@@ -188,6 +202,9 @@ class _GymScreenState extends State<GymScreen> {
         phone: '(347) 555-2345',
         website: 'irontemple.com',
         specialtyTags: ['Strength', 'Bodybuilding', 'Powerlifting', '24/7'],
+         about:
+            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
+
       ),
     ]);
 

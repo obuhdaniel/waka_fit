@@ -89,7 +89,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.wakaBackground,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(),
@@ -98,13 +98,13 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildQuickActions(),
-                _buildStatusBar(),
                 _buildInfoCards(),
                 _buildAmenities(),
                 if (widget.gym.additionalFeatures.isNotEmpty)
                   _buildAdditionalFeatures(),
                 if (widget.gym.membershipOptions.isNotEmpty)
                   _buildMembershipOptions(),
+                _buildAboutSection(),
                 SizedBox(height: 100),
               ],
             ),
@@ -120,11 +120,11 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
       expandedHeight: 280,
       pinned: true,
       elevation: 0,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.wakaBackground,
       leading: Container(
         margin: EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.wakaSurface,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -135,7 +135,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
           ],
         ),
         child: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: AppColors.wakaTextPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -215,7 +215,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
         Container(
           margin: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.wakaSurface,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
@@ -226,7 +226,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
             ],
           ),
           child: IconButton(
-            icon: Icon(Icons.share_outlined, color: Colors.black),
+            icon: Icon(Icons.share_outlined, color: AppColors.wakaTextPrimary),
             onPressed: () {
               // Share functionality
             },
@@ -235,7 +235,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
         Container(
           margin: EdgeInsets.only(right: 8, top: 8, bottom: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.wakaSurface,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
@@ -247,8 +247,8 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
           ),
           child: IconButton(
             icon: Icon(
-              _isFavorited ? Icons.bookmark : Icons.bookmark_border,
-              color: _isFavorited ? AppColors.primary : Colors.black,
+              _isFavorited ? Icons.bookmark_border : Icons.bookmark,
+              color: _isFavorited ? AppColors.wakaTextPrimary : AppColors.wakaGreen,
             ),
             onPressed: _toggleFavorite,
           ),
@@ -260,108 +260,69 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
   Widget _buildQuickActions() {
     return Padding(
       padding: EdgeInsets.all(20),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: _QuickActionButton(
-              icon: Icons.directions,
-              label: 'Directions',
-              onPressed: _launchDirections,
-              isPrimary: true,
-            ),
+          Row(
+            children: [
+          
+              Text('Get Directions', style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.wakaBlue,
+              )),
+              Icon(Icons.arrow_right_alt, size: 24, color: AppColors.wakaBlue),
+            
+            ],
           ),
-          SizedBox(width: 12),
-          Expanded(
-            child: _QuickActionButton(
-              icon: Icons.phone,
-              label: 'Call',
-              onPressed: _launchPhone,
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: _QuickActionButton(
-              icon: Icons.language,
-              label: 'Website',
-              onPressed: () => _launchUrl(widget.gym.website),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildStatusBar() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade100),
-        ),
-        child: Row(
-          children: [
-            _StatusChip(
-              icon: Icons.access_time,
-              label: widget.gym.isOpen ? 'Open' : 'Closed',
-              value: widget.gym.isOpen ? 'Until ${widget.gym.closingTime}' : widget.gym.closingTime,
-              color: widget.gym.isOpen ? AppColors.success : AppColors.error,
-            ),
-            SizedBox(width: 16),
-            Container(width: 1, height: 40, color: Colors.grey.shade200),
-            SizedBox(width: 16),
-            _StatusChip(
+          SizedBox(height: 6),
+          Row(
+            children: [
+               _StatusChip(
               icon: Icons.star,
               label: '${widget.gym.rating}',
               value: '${widget.gym.reviewCount} reviews',
               color: Colors.amber,
             ),
-            SizedBox(width: 16),
-            Container(width: 1, height: 40, color: Colors.grey.shade200),
-            SizedBox(width: 16),
-            _StatusChip(
-              icon: Icons.location_on,
-              label: widget.gym.distance,
-              value: 'Away',
-              color: AppColors.primary,
-            ),
-          ],
-        ),
+            ],
+          )
+          
+        ],
       ),
     );
   }
-
   Widget _buildInfoCards() {
-    return Padding(
-      padding: EdgeInsets.all(20),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.wakaField,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.wakaTextSecondary.withOpacity(0.2), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Information',
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: 12),
+          
           _InfoCard(
             icon: Icons.access_time,
             title: 'Hours',
             value: widget.gym.hours,
             onTap: () {},
           ),
-          SizedBox(height: 8),
           _InfoCard(
             icon: Icons.phone,
             title: 'Phone',
             value: widget.gym.phone,
             onTap: _launchPhone,
           ),
-          SizedBox(height: 8),
           _InfoCard(
             icon: Icons.language,
             title: 'Website',
@@ -380,10 +341,11 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Amenities',
+            'Amenities & Features',
             style: GoogleFonts.inter(
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
+              color: AppColors.wakaTextPrimary
             ),
           ),
           SizedBox(height: 16),
@@ -481,6 +443,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w700,
+              color: AppColors.wakaTextPrimary
             ),
           ),
           SizedBox(height: 16),
@@ -489,9 +452,9 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
               margin: EdgeInsets.only(bottom: 12),
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.wakaSurface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1.5),
+                border: Border.all(color: AppColors.wakaTextSecondary.withOpacity(0.2), width: 1.5),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
@@ -513,6 +476,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
+                            color: AppColors.wakaTextPrimary
                           ),
                         ),
                       ),
@@ -527,7 +491,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
+                            color: AppColors.wakaBlue,
                           ),
                         ),
                       ),
@@ -537,7 +501,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
                   Text(
                     option.description,
                     style: GoogleFonts.inter(
-                      color: AppColors.textSecondary,
+                      color: AppColors.wakaTextSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -547,7 +511,7 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: AppColors.wakaBlue,
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -556,10 +520,11 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
                         elevation: 0,
                       ),
                       child: Text(
-                        'Select Plan',
+                        'Get Started',
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
+                          color: AppColors.wakaBackground
                         ),
                       ),
                     ),
@@ -573,51 +538,96 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
     );
   }
 
-  Widget _buildBottomBar() {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: Offset(0, -5),
+
+  Widget _buildAboutSection() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'About ${widget.gym.name}',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.wakaTextPrimary
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            widget.gym.about,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              height: 1.5,
+              color: AppColors.wakaTextSecondary,
+            ),
           ),
         ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: ElevatedButton(
-          onPressed: _showBookingSheet,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 0,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.calendar_today, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'Book a Tour',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
 
+
+
+Widget _buildBottomBar() {
+  return Container(
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.06),
+          blurRadius: 20,
+          offset: const Offset(0, -6),
+        ),
+      ],
+    ),
+    child: SafeArea(
+      top: false,
+      child: Row(
+        children: [
+          /// Quick Actions
+          _ActionIcon(
+            icon: Icons.phone,
+            label: 'Call',
+            onTap: _launchPhone,
+          ),
+          const SizedBox(width: 12),
+          _ActionIcon(
+            icon: Icons.language,
+            label: 'Website',
+            onTap: () => _launchUrl(widget.gym.website),
+          ),
+
+          const SizedBox(width: 16),
+
+          /// Primary CTA
+          Expanded(
+            child: ElevatedButton(
+              onPressed: _showBookingSheet,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Book Session',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
   IconData _getAmenityIcon(String amenity) {
     switch (amenity.toLowerCase()) {
       case 'strength equipment':
@@ -706,33 +716,36 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: color),
-              SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+
+          /// Label
           Text(
-            value,
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          /// Value
+          Text(
+            '($value)',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.inter(
               fontSize: 12,
+              fontWeight: FontWeight.w500,
               color: AppColors.textTertiary,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -756,22 +769,21 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surface,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(8),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: AppColors.primary, size: 20),
+                child: Icon(icon, color: AppColors.wakaBlue, size: 20),
               ),
               SizedBox(width: 16),
               Expanded(
@@ -779,29 +791,17 @@ class _InfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AppColors.textTertiary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
                       value,
                       style: GoogleFonts.inter(
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.wakaBlue,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: AppColors.textTertiary,
-                size: 20,
-              ),
+             
             ],
           ),
         ),
@@ -824,20 +824,20 @@ class _AmenityChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.wakaSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.primary, size: 18),
+          Icon(icon, color: AppColors.wakaBlue, size: 18),
           SizedBox(width: 8),
           Text(
             label,
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w500,
+              color: AppColors.wakaTextPrimary,
             ),
           ),
         ],
@@ -929,6 +929,7 @@ class GymDetail {
   final List<String> amenities;
   final List<String> additionalFeatures;
   final List<MembershipOption> membershipOptions;
+  final String about;
   final bool isOpen;
   final double? monthlyPrice;
 
@@ -949,6 +950,7 @@ class GymDetail {
     this.membershipOptions = const [],
     this.isOpen = true,
     this.monthlyPrice,
+    this.about = '',
   });
 }
 
@@ -964,4 +966,45 @@ class MembershipOption {
     required this.description,
     this.features = const [],
   });
+}
+
+class _ActionIcon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ActionIcon({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.primary, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

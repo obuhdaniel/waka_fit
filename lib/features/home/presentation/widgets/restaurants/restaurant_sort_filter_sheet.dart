@@ -131,6 +131,7 @@ class _SortFilterSheetState extends State<SortFilterSheet> {
             ],
           ),
           const SizedBox(height: 24),
+
           // Max distance
           Text(
             'Max Distance (miles)',

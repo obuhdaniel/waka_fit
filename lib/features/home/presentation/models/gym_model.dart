@@ -17,6 +17,7 @@ class GymModel {
   final String phone;
   final String website;
   final List<String> specialtyTags;
+  final String about;
   bool isSaved;
 
   GymModel({
@@ -36,6 +37,7 @@ class GymModel {
     required this.website,
     required this.specialtyTags,
     this.isSaved = false,
+    required this.about,
   });
 
   // Convert to GymDetail for detail screen
@@ -64,6 +66,7 @@ class GymModel {
       ],
       isOpen: isOpen,
       monthlyPrice: price,
+      about: about,
     );
   }
 }
