@@ -504,106 +504,246 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       ),
     );
   }
-
-  Widget _buildMenuItems() {
-    final category = widget.restaurant.menuCategories[_selectedMenuCategory];
-    
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: category.items.map((item) {
-          return Container(
-            margin: EdgeInsets.only(bottom: 16),
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.wakaSurface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.wakaTextSecondary.withOpacity(0.2), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
+Widget _buildMenuItems() {
+  final category = widget.restaurant.menuCategories[_selectedMenuCategory];
+  
+  return Padding(
+    padding: EdgeInsets.symmetric(horizontal: 20),
+    child: Column(
+      children: category.items.map((item) {
+        final hasImage = item.menuImageUrl != null && item.menuImageUrl!.isNotEmpty;
+        
+        return Container(
+          margin: EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppColors.wakaSurface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.wakaTextSecondary.withOpacity(0.2), 
+              width: 1.5
             ),
-            child: Column(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: hasImage
+                ? _buildCardWithImage(item)
+                : _buildCardWithoutImage(item),
+          ),
+        );
+      }).toList(),
+    ),
+  );
+}
+
+Widget _buildCardWithImage(MenuItem item) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Image Section
+      AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Image.network(
+          item.menuImageUrl!,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: AppColors.wakaTextSecondary.withOpacity(0.1),
+              child: Icon(
+                Icons.restaurant_menu,
+                size: 48,
+                color: AppColors.wakaTextSecondary.withOpacity(0.3),
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              color: AppColors.wakaTextSecondary.withOpacity(0.1),
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                  color: AppColors.wakaBlue,
+                  strokeWidth: 2,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      // Content Section
+      Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.name,
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.wakaTextPrimary,
-                        ),
-                      ),
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.wakaTextPrimary,
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.wakaBlue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '\$${item.price}',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.wakaBlue,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text(
-                  item.description,
-                  style: GoogleFonts.inter(
-                    color: AppColors.wakaTextSecondary,
-                    fontSize: 14,
-                    height: 1.5,
                   ),
                 ),
-                if (item.calories != null) ...[
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.local_fire_department, size: 14, color: AppColors.wakaTextSecondary),
-                      SizedBox(width: 4),
-                      Text(
-                        '${item.calories} cal',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: AppColors.wakaTextSecondary,
-                        ),
-                      ),
-                    ],
+                SizedBox(width: 12),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.wakaBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
-                SizedBox(height: 16),
-                Text(
-                  item.orderNote,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: AppColors.wakaTextSecondary,
-                    fontStyle: FontStyle.italic,
+                  child: Text(
+                    '\$${item.price}',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.wakaBlue,
+                    ),
                   ),
                 ),
               ],
             ),
-          );
-        }).toList(),
+            SizedBox(height: 8),
+            Text(
+              item.description,
+              style: GoogleFonts.inter(
+                color: AppColors.wakaTextSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+            if (item.calories != null) ...[
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_fire_department, 
+                    size: 14, 
+                    color: AppColors.wakaTextSecondary
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    '${item.calories} cal',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppColors.wakaTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            SizedBox(height: 12),
+            Text(
+              item.orderNote,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppColors.wakaTextSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
       ),
-    );
-  }
+    ],
+  );
+}
 
-  Widget _buildAboutSection() {
+Widget _buildCardWithoutImage(MenuItem item) {
+  return Padding(
+    padding: EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                item.name,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.wakaTextPrimary,
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.wakaBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '\$${item.price}',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.wakaBlue,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Text(
+          item.description,
+          style: GoogleFonts.inter(
+            color: AppColors.wakaTextSecondary,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        if (item.calories != null) ...[
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                Icons.local_fire_department, 
+                size: 14, 
+                color: AppColors.wakaTextSecondary
+              ),
+              SizedBox(width: 4),
+              Text(
+                '${item.calories} cal',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.wakaTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+        SizedBox(height: 12),
+        Text(
+          item.orderNote,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: AppColors.wakaTextSecondary,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    ),
+  );
+} 
+
+ Widget _buildAboutSection() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Column(
@@ -635,7 +775,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.wakaSurface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
@@ -930,6 +1070,7 @@ class MenuCategory {
 class MenuItem {
   final String name;
   final String description;
+  final String menuImageUrl;
   final double price;
   final int? calories;
   final String orderNote;
@@ -938,6 +1079,7 @@ class MenuItem {
     required this.name,
     required this.description,
     required this.price,
+    required this.menuImageUrl,
     this.calories,
     this.orderNote = 'Ordering redirects to restaurant website',
   });

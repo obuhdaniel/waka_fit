@@ -66,12 +66,14 @@ class RestaurantModel {
               price: 14.99,
               calories: 520,
               orderNote: 'Ordering redirects to FreshBowl website',
+              menuImageUrl: ''
             ),
             MenuItem(
               name: 'Acai Superfood Bowl',
               description: 'Acai blend, granola, mixed berries, banana, honey, coconut flakes',
               price: 12.99,
               calories: 380,
+              menuImageUrl: 'https://picsum.photos/200/300?random=5'
             ),
           ],
         ),
@@ -83,6 +85,7 @@ class RestaurantModel {
               description: 'Mixed greens, feta, olives, cucumber, tomato, red onion, lemon vinaigrette',
               price: 11.99,
               calories: 320,
+              menuImageUrl: 'https://picsum.photos/200/300?random=5'
             ),
           ],
         ),
@@ -94,6 +97,7 @@ class RestaurantModel {
               description: 'Spinach, kale, pineapple, banana, ginger, coconut water',
               price: 8.99,
               calories: 210,
+              menuImageUrl: 'https://picsum.photos/200/300?random=5'
             ),
           ],
         ),

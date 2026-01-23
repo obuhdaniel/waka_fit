@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:waka_fit/features/authentitcation/pages/auth_screen.dart';
 import 'package:waka_fit/features/authentitcation/pages/providers/auth_provider.dart';
 import 'package:waka_fit/shared/providers/user_provider.dart';
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -12,111 +14,285 @@ class ProfilePage extends StatelessWidget {
     final authProvider = Provider.of<AppAuthProvider>(context);
     final userProvider = Provider.of<UserProvider>(context);
 
-    final firebaseUser = authProvider.user; // from AppAuthProvider
+    final firebaseUser = authProvider.user;
 
     if (firebaseUser == null) {
       return const Center(child: Text("User not logged in"));
     }
 
-    final displayName = firebaseUser.displayName ?? userProvider.name ?? "User";
-    final email = firebaseUser.email ?? "";
+    final displayName =
+        firebaseUser.displayName ?? userProvider.name ?? "User";
     final photoUrl = firebaseUser.photoURL;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
         title: const Text("Profile"),
-        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              // TODO: navigate to settings
+            },
+          )
+        ],
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // PROFILE PHOTO
-            CircleAvatar(
-              radius: 60,
-              backgroundImage: photoUrl != null
-                  ? NetworkImage(photoUrl)
-                  : null,
-              child: photoUrl == null
-                  ? const Icon(Icons.person, size: 60)
-                  : null,
+            // Avatar with ring
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.cyanAccent, width: 2),
+              ),
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage:
+                    photoUrl != null ? NetworkImage(photoUrl) : null,
+                backgroundColor: Colors.grey[800],
+                child: photoUrl == null
+                    ? const Icon(Icons.person, size: 50, color: Colors.white)
+                    : null,
+              ),
             ),
-            const SizedBox(height: 20),
 
-            // NAME
+            const SizedBox(height: 16),
+
             Text(
               displayName,
               style: const TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
 
             const SizedBox(height: 6),
 
-            // EMAIL
             Text(
-              email,
+              "Fitness enthusiast | Brooklyn",
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 14,
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 16),
 
-            // EXTRA USER INFO (OPTIONAL)
-            _buildInfoTile("UID", firebaseUser.uid),
-            const SizedBox(height: 10),
-            _buildInfoTile("Email Verified", firebaseUser.emailVerified ? "Yes" : "No"),
-            const SizedBox(height: 10),
-            _buildInfoTile("Last Sign-in", firebaseUser.metadata.lastSignInTime.toString()),
+            // Edit profile button
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.cyanAccent,
+                side: const BorderSide(color: Colors.cyanAccent),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              onPressed: () {},
+              child: const Text("Edit Profile"),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Stats card
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: const [
+                  _StatItem(label: "Following", value: "24"),
+                  _StatItem(label: "Saved", value: "18"),
+                  _StatItem(label: "Posts", value: "5"),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Tabs
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: const [
+                _TabItem(label: "Saved", selected: true),
+                _TabItem(label: "Activity"),
+                _TabItem(label: "Settings"),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Coaches section
+            _SectionHeader(title: "Coaches (8)"),
+            const SizedBox(height: 12),
+            _AvatarGrid(),
+
+            const SizedBox(height: 24),
+
+            // Gyms section
+            _SectionHeader(title: "Gyms (6)"),
+            const SizedBox(height: 12),
+            _AvatarGrid(),
 
             const SizedBox(height: 40),
 
-            // LOGOUT BUTTON
-            ElevatedButton(
+            // Logout (optional here or move to settings)
+            TextButton(
               onPressed: () async {
                 await authProvider.signOut();
-
-                // After logout, send them back to login screen
                 if (context.mounted) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> AuthScreen()));
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => AuthScreen()),
+                  );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
               child: const Text(
                 "Logout",
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                style: TextStyle(color: Colors.redAccent),
               ),
             ),
           ],
         ),
       ),
+    
+     floatingActionButton: FloatingActionButton(
+  backgroundColor: Colors.yellow,
+  onPressed: () async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final token = await user.getIdToken();
+      print("ID TOKEN: $token");
+      // Copy to clipboard
+      await Clipboard.setData(ClipboardData(text: token ?? ""));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Token copied to clipboard!")),
+      );
+    }
+  },
+  child: Icon(Icons.key, color: Colors.black),
+),
     );
   }
+}
 
-  Widget _buildInfoTile(String title, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(10),
+
+
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _StatItem({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+        ),
+      ],
+    );
+  }
+}
+
+
+class _TabItem extends StatelessWidget {
+  final String label;
+  final bool selected;
+
+  const _TabItem({required this.label, this.selected = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.cyanAccent : Colors.white54,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        if (selected)
+          Container(
+            height: 2,
+            width: 40,
+            color: Colors.cyanAccent,
+          ),
+      ],
+    );
+  }
+}
+
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        TextButton(
+          onPressed: () {},
+          child: const Text(
+            "View All",
+            style: TextStyle(color: Colors.cyanAccent),
+          ),
+        )
+      ],
+    );
+  }
+}
+
+
+class _AvatarGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
-      width: double.infinity,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-          Text(value, style: const TextStyle(fontSize: 16, color: Colors.black87)),
-        ],
+      itemCount: 8,
+      itemBuilder: (_, __) => Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.cyanAccent, width: 2),
+        ),
+        child: const CircleAvatar(
+          backgroundColor: Colors.grey,
+        ),
       ),
     );
   }

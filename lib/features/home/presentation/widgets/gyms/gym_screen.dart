@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
-import 'package:waka_fit/features/home/presentation/models/gym_model.dart';
+import 'package:waka_fit/features/home/models/gym_model.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_card.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_detail_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_filter_sheet.dart';

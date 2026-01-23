@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
-import 'package:waka_fit/features/home/presentation/models/restaurant_model.dart';
+import 'package:waka_fit/features/home/models/restaurant_model.dart';
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_card.dart';
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_detail_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_filter_sheet.dart';
@@ -285,10 +285,10 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
 
   int _getResponsiveCrossAxisCount(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    if (width >= 1200) return 4;
-    if (width >= 900) return 3;
-    if (width >= 600) return 2;
-    return 2;
+    if (width >= 1200) return 3;
+    if (width >= 900) return 2;
+    if (width >= 600) return 1;
+    return 1;
   }
 
   double _getResponsiveAspectRatio(BuildContext context) {
@@ -301,97 +301,98 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     return cardWidth / desiredCardHeight;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return  Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Search Bar
-          RestaurantSearchBar(
-            controller: _searchController,
-            onSearch: (query) {
-              setState(() {
-                _searchQuery = query;
-              });
-              _filterRestaurants();
-            },
-            onFilterTap: _showFilterSheet,
+@override
+Widget build(BuildContext context) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Search Bar
+      RestaurantSearchBar(
+        controller: _searchController,
+        onSearch: (query) {
+          setState(() {
+            _searchQuery = query;
+          });
+          _filterRestaurants();
+        },
+        onFilterTap: _showFilterSheet,
+      ),
+
+      // Cuisine Chips
+      Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: AppColors.wakaSurface,
+          border: Border.symmetric(
+            horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
           ),
+        ),
+        child: CuisineChips(
+          cuisines: _getCuisineList(),
+          onCuisineSelected: (index) {
+            setState(() {
+              _selectedCuisineIndex = index;
+            });
+            _filterRestaurants();
+          },
+          initialIndex: _selectedCuisineIndex,
+        ),
+      ),
 
-          // Cuisine Chips
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.wakaSurface,
-              border: Border.symmetric(
-                horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
-              ),
-            ),
-            child: CuisineChips(
-              cuisines: _getCuisineList(),
-              onCuisineSelected: (index) {
-                setState(() {
-                  _selectedCuisineIndex = index;
-                });
-                _filterRestaurants();
-              },
-              initialIndex: _selectedCuisineIndex,
-            ),
+      const SizedBox(height: 8),
+
+      // Results count
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Text(
+          '${_filteredRestaurants.length} restaurants found',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: Colors.white.withOpacity(0.6),
           ),
+        ),
+      ),
 
-          const SizedBox(height: 8),
+      const SizedBox(height: 8),
 
-          // Results count
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              '${_filteredRestaurants.length} restaurants found',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.6),
-              ),
-            ),
+      // Restaurants Grid / Empty State
+      if (_filteredRestaurants.isEmpty)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: _buildEmptyState(),
+        )
+      else
+        GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          itemCount: _filteredRestaurants.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _getResponsiveCrossAxisCount(context),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: _getResponsiveAspectRatio(context),
           ),
-
-          const SizedBox(height: 8),
-
-          // Restaurants Grid
-          if (_filteredRestaurants.isEmpty)
-            Expanded(
-              child: _buildEmptyState(),
-            )
-          else
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                itemCount: _filteredRestaurants.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: _getResponsiveCrossAxisCount(context),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: _getResponsiveAspectRatio(context),
-                ),
-                itemBuilder: (context, index) {
-                  final restaurant = _filteredRestaurants[index];
-                  return RestaurantCard(
-                    name: restaurant.name,
-                    cuisine: restaurant.cuisine,
-                    rating: restaurant.rating.toStringAsFixed(1),
-                    distance: '${restaurant.distance} mi',
-                    price: '\$${restaurant.price.toStringAsFixed(2)}',
-                    dietaryTags: restaurant.dietaryTags.take(2).toList(),
-                    imageUrl: restaurant.imageUrl,
-                    isOpen: restaurant.isOpen,
-                    hours: restaurant.hours,
-                    onTap: () => _navigateToRestaurantDetail(restaurant),
-                    onSave: () => _toggleSave(index),
-                  );
-                },
-              ),
-            ),
-        ],
-      );
-  }
+          itemBuilder: (context, index) {
+            final restaurant = _filteredRestaurants[index];
+            return RestaurantCard(
+              name: restaurant.name,
+              cuisine: restaurant.cuisine,
+              rating: restaurant.rating.toStringAsFixed(1),
+              distance: '${restaurant.distance} mi',
+              price: '\$${restaurant.price.toStringAsFixed(2)}',
+              dietaryTags: restaurant.dietaryTags.take(2).toList(),
+              imageUrl: restaurant.imageUrl,
+              isOpen: restaurant.isOpen,
+              hours: restaurant.hours,
+              onTap: () => _navigateToRestaurantDetail(restaurant),
+              onSave: () => _toggleSave(index),
+            );
+          },
+        ),
+    ],
+  );
+}
 
   Widget _buildEmptyState() {
     return Center(

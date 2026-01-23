@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:waka_fit/features/authentitcation/pages/auth_screen.dart';
 import 'package:waka_fit/features/home/presentation/pages/home_screen.dart';
+import 'package:waka_fit/features/home/presentation/pages/main_navigation.dart';
 import 'package:waka_fit/features/onboarding/personalization_screen.dart';
 import 'package:waka_fit/features/profile/profile_page.dart';
 import 'package:waka_fit/shared/helpers/preferences_manager.dart';
@@ -151,7 +152,7 @@ Future<void> _validateSessionAndNavigate() async {
     if (context.mounted && isSetupCompleted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
       );
     } else if (context.mounted && !isSetupCompleted) {
       Navigator.pushReplacement(

@@ -1,7 +1,7 @@
 // lib/features/coaches/screens/coaches_screen.dart
 import 'package:flutter/material.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
-import 'package:waka_fit/features/home/presentation/models/coach_model.dart';
+import 'package:waka_fit/features/home/models/coach_model.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/coach_card.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/coach_stats_summary.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/coaches_search_bar.dart';
