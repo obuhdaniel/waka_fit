@@ -1,15 +1,18 @@
 // lib/features/restaurants/screens/restaurant_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
+import 'package:waka_fit/features/home/data/models/restaurant_model.dart';
+import 'package:waka_fit/features/home/providers/restaurants_provider.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
-  final RestaurantDetail restaurant;
+  final String restaurantId;  // Only accept ID
 
   const RestaurantDetailScreen({
     Key? key,
-    required this.restaurant,
+    required this.restaurantId,
   }) : super(key: key);
 
   @override
@@ -19,6 +22,44 @@ class RestaurantDetailScreen extends StatefulWidget {
 class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   bool _isFavorited = false;
   int _selectedMenuCategory = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRestaurantDetails();
+  }
+
+  Future<void> _loadRestaurantDetails() async {
+    final provider = context.read<RestaurantProvider>();
+    
+    // Check if we already have this restaurant loaded
+    if (provider.selectedRestaurant?.id == widget.restaurantId) {
+      _isFavorited = provider.selectedRestaurant!.isSaved;
+      return;
+    }
+    
+    try {
+      debugPrint('🔄 Loading restaurant details for ID: ${widget.restaurantId}');
+      await provider.fetchRestaurantByID(widget.restaurantId);
+      
+      // After loading, set favorite status
+      if (mounted && provider.selectedRestaurant != null) {
+        setState(() {
+          _isFavorited = provider.selectedRestaurant!.isSaved;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading restaurant: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load restaurant details'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
@@ -34,8 +75,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
-  Future<void> _launchDirections() async {
-    final String encodedAddress = Uri.encodeComponent(widget.restaurant.address);
+  Future<void> _launchDirections(String address) async {
+    final String encodedAddress = Uri.encodeComponent(address);
     final Uri uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$encodedAddress');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
@@ -49,8 +90,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
-  Future<void> _launchPhone() async {
-    final Uri uri = Uri.parse('tel:${widget.restaurant.phone}');
+  Future<void> _launchPhone(String phone) async {
+    final Uri uri = Uri.parse('tel:$phone');
     if (!await launchUrl(uri)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,8 +104,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
-  Future<void> _launchOrderOnline() async {
-    final Uri uri = Uri.parse(widget.restaurant.orderLink);
+  Future<void> _launchOrderOnline(String orderLink) async {
+    final Uri uri = Uri.parse(orderLink);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,10 +118,16 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
-  void _toggleFavorite() {
+  void _toggleFavorite(RestaurantModel restaurant) {
+    final provider = context.read<RestaurantProvider>();
+    
     setState(() {
       _isFavorited = !_isFavorited;
     });
+    
+    // You might want to update the restaurant in provider here
+    // provider.toggleFavorite(restaurant.id);
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(_isFavorited ? 'Added to favorites' : 'Removed from favorites'),
@@ -93,32 +140,114 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<RestaurantProvider>(
+      builder: (context, provider, child) {
+        final restaurant = provider.selectedRestaurant;
+        
+        // Show loading if no restaurant or wrong restaurant
+        if (restaurant == null || restaurant.id != widget.restaurantId) {
+          if (provider.isLoading) {
+            return _buildLoadingScreen();
+          } else {
+            return _buildErrorScreen(provider.error);
+          }
+        }
+        
+        return _buildContent(restaurant, provider);
+      },
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      backgroundColor: AppColors.wakaBackground,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: AppColors.wakaBlue),
+            SizedBox(height: 20),
+            Text(
+              'Loading restaurant details...',
+              style: GoogleFonts.inter(
+                color: AppColors.wakaTextSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(String? error) {
+    return Scaffold(
+      backgroundColor: AppColors.wakaBackground,
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              SizedBox(height: 20),
+              Text(
+                'Failed to load restaurant',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.error,
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                error ?? 'Unknown error',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  color: AppColors.wakaTextSecondary,
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _loadRestaurantDetails,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.wakaBlue,
+                ),
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(RestaurantModel restaurant, RestaurantProvider provider) {
     return Scaffold(
       backgroundColor: AppColors.wakaBackground,
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(),
+          _buildSliverAppBar(restaurant),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildQuickActions(),
-                _buildInfoCards(),
-                _buildCuisineTags(),
-                _buildMenuHighlights(),
-                _buildMenuItems(),
-                _buildAboutSection(),
+                _buildQuickActions(restaurant),
+                _buildInfoCards(restaurant),
+                _buildCuisineTags(restaurant),
+                _buildMenuHighlights(restaurant),
+                _buildMenuItems(restaurant),
+                _buildAboutSection(restaurant),
                 SizedBox(height: 100),
               ],
             ),
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(),
+      bottomNavigationBar: _buildBottomBar(restaurant),
     );
   }
 
-  Widget _buildSliverAppBar() {
+  Widget _buildSliverAppBar(RestaurantModel restaurant) {
     return SliverAppBar(
       expandedHeight: 280,
       pinned: true,
@@ -147,7 +276,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           fit: StackFit.expand,
           children: [
             Image.network(
-              widget.restaurant.imageUrl,
+              restaurant.imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
@@ -179,7 +308,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          widget.restaurant.name,
+                          restaurant.name,
                           style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 26,
@@ -192,7 +321,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    widget.restaurant.cuisine,
+                    restaurant.cuisine,
                     style: GoogleFonts.inter(
                       color: Colors.white.withOpacity(0.9),
                       fontSize: 14,
@@ -243,14 +372,14 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               _isFavorited ? Icons.bookmark : Icons.bookmark_border,
               color: _isFavorited ? AppColors.wakaGreen : AppColors.wakaTextPrimary,
             ),
-            onPressed: _toggleFavorite,
+            onPressed: () => _toggleFavorite(restaurant),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(RestaurantModel restaurant) {
     return Padding(
       padding: EdgeInsets.all(20),
       child: Column(
@@ -268,7 +397,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            widget.restaurant.address,
+                            restaurant.address,
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -280,7 +409,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     ),
                     SizedBox(height: 8),
                     GestureDetector(
-                      onTap: _launchDirections,
+                      onTap: () => _launchDirections(restaurant.address),
                       child: Row(
                         children: [
                           Icon(Icons.directions, color: AppColors.wakaBlue, size: 18),
@@ -308,16 +437,16 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             children: [
               _StatusChip(
                 icon: Icons.location_on,
-                label: widget.restaurant.distance,
+                label: restaurant.distance.toString(),
                 value: 'from you',
                 color: AppColors.wakaBlue,
               ),
               SizedBox(width: 16),
               _StatusChip(
                 icon: Icons.access_time,
-                label: widget.restaurant.isOpen ? 'Open' : 'Closed',
-                value: widget.restaurant.hours,
-                color: widget.restaurant.isOpen ? AppColors.wakaGreen : AppColors.error,
+                label: restaurant.isOpen ? 'Open' : 'Closed',
+                value: restaurant.hours,
+                color: restaurant.isOpen ? AppColors.wakaGreen : AppColors.error,
               ),
             ],
           ),
@@ -333,7 +462,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 Icon(Icons.star, color: Colors.amber, size: 20),
                 SizedBox(width: 8),
                 Text(
-                  '${widget.restaurant.rating}',
+                  '${restaurant.rating}',
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -342,7 +471,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 ),
                 SizedBox(width: 4),
                 Text(
-                  '(${widget.restaurant.reviewCount} reviews)',
+                  '(${restaurant.reviewCount} reviews)',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: AppColors.wakaTextSecondary,
@@ -366,7 +495,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     );
   }
 
-  Widget _buildInfoCards() {
+  Widget _buildInfoCards(RestaurantModel restaurant) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.wakaField,
@@ -387,33 +516,33 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           _InfoCard(
             icon: Icons.phone,
             title: 'Call',
-            value: widget.restaurant.phone,
-            onTap: _launchPhone,
+            value: restaurant.phone,
+            onTap: () => _launchPhone(restaurant.phone),
           ),
           _InfoCard(
             icon: Icons.language,
             title: 'Website',
-            value: widget.restaurant.website,
-            onTap: () => _launchUrl(widget.restaurant.website),
+            value: restaurant.website,
+            onTap: () => _launchUrl(restaurant.website),
           ),
           _InfoCard(
             icon: Icons.shopping_cart,
             title: 'Order Online',
-            value: 'Ordering redirects to ${widget.restaurant.name} website',
-            onTap: _launchOrderOnline,
+            value: 'Ordering redirects to ${restaurant.name} website',
+            onTap: () => _launchOrderOnline(restaurant.orderLink),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCuisineTags() {
+  Widget _buildCuisineTags(RestaurantModel restaurant) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: widget.restaurant.dietaryTags.map((tag) {
+        children: restaurant.dietaryTags.map((tag) {
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -446,7 +575,11 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     );
   }
 
-  Widget _buildMenuHighlights() {
+  Widget _buildMenuHighlights(RestaurantModel restaurant) {
+    if (restaurant.menuCategories.isEmpty) {
+      return SizedBox.shrink();
+    }
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Column(
@@ -464,7 +597,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: widget.restaurant.menuCategories.asMap().entries.map((entry) {
+              children: restaurant.menuCategories.asMap().entries.map((entry) {
                 final index = entry.key;
                 final category = entry.value;
                 return Padding(
@@ -504,253 +637,282 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       ),
     );
   }
-Widget _buildMenuItems() {
-  final category = widget.restaurant.menuCategories[_selectedMenuCategory];
-  
-  return Padding(
-    padding: EdgeInsets.symmetric(horizontal: 20),
-    child: Column(
-      children: category.items.map((item) {
-        final hasImage = item.menuImageUrl != null && item.menuImageUrl!.isNotEmpty;
-        
-        return Container(
-          margin: EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: AppColors.wakaSurface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.wakaTextSecondary.withOpacity(0.2), 
-              width: 1.5
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: hasImage
-                ? _buildCardWithImage(item)
-                : _buildCardWithoutImage(item),
-          ),
-        );
-      }).toList(),
-    ),
-  );
-}
 
-Widget _buildCardWithImage(MenuItem item) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Image Section
-      AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Image.network(
-          item.menuImageUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: AppColors.wakaTextSecondary.withOpacity(0.1),
-              child: Icon(
-                Icons.restaurant_menu,
-                size: 48,
-                color: AppColors.wakaTextSecondary.withOpacity(0.3),
+  Widget _buildMenuItems(RestaurantModel restaurant) {
+    if (restaurant.menuCategories.isEmpty) {
+      return _buildEmptyState('No menu categories found');
+    }
+
+    int safeIndex = _selectedMenuCategory;
+    if (safeIndex >= restaurant.menuCategories.length || safeIndex < 0) {
+      safeIndex = 0; 
+    }
+
+    final category = restaurant.menuCategories[safeIndex];
+    
+    if (category.items.isEmpty) {
+      return _buildEmptyState('No items available in ${category.name}');
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: category.items.map((item) {
+          final hasImage = item.menuImageUrl.isNotEmpty;
+          
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: AppColors.wakaSurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.wakaTextSecondary.withOpacity(0.2), 
+                width: 1.5
               ),
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              color: AppColors.wakaTextSecondary.withOpacity(0.1),
-              child: Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                  color: AppColors.wakaBlue,
-                  strokeWidth: 2,
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-      // Content Section
-      Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    item.name,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.wakaTextPrimary,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.wakaBlue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '\$${item.price}',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.wakaBlue,
-                    ),
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            SizedBox(height: 8),
-            Text(
-              item.description,
-              style: GoogleFonts.inter(
-                color: AppColors.wakaTextSecondary,
-                fontSize: 14,
-                height: 1.5,
-              ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: hasImage
+                  ? _buildCardWithImage(item)
+                  : _buildCardWithoutImage(item),
             ),
-            if (item.calories != null) ...[
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.local_fire_department, 
-                    size: 14, 
-                    color: AppColors.wakaTextSecondary
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      child: Center(
+        child: Text(
+          message,
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            color: AppColors.wakaTextSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardWithImage(MenuItem item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Image Section
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Image.network(
+            item.menuImageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: AppColors.wakaTextSecondary.withOpacity(0.1),
+                child: Icon(
+                  Icons.restaurant_menu,
+                  size: 48,
+                  color: AppColors.wakaTextSecondary.withOpacity(0.3),
+                ),
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: AppColors.wakaTextSecondary.withOpacity(0.1),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: AppColors.wakaBlue,
+                    strokeWidth: 2,
                   ),
-                  SizedBox(width: 4),
-                  Text(
-                    '${item.calories} cal',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: AppColors.wakaTextSecondary,
+                ),
+              );
+            },
+          ),
+        ),
+        // Content Section
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.wakaTextPrimary,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.wakaBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '\$${item.price}',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.wakaBlue,
+                      ),
                     ),
                   ),
                 ],
               ),
-            ],
-            SizedBox(height: 12),
-            Text(
-              item.orderNote,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: AppColors.wakaTextSecondary,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _buildCardWithoutImage(MenuItem item) {
-  return Padding(
-    padding: EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                item.name,
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.wakaTextPrimary,
-                ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.wakaBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '\$${item.price}',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.wakaBlue,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-        Text(
-          item.description,
-          style: GoogleFonts.inter(
-            color: AppColors.wakaTextSecondary,
-            fontSize: 14,
-            height: 1.5,
-          ),
-        ),
-        if (item.calories != null) ...[
-          SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                Icons.local_fire_department, 
-                size: 14, 
-                color: AppColors.wakaTextSecondary
-              ),
-              SizedBox(width: 4),
+              SizedBox(height: 8),
               Text(
-                '${item.calories} cal',
+                item.description,
                 style: GoogleFonts.inter(
-                  fontSize: 12,
                   color: AppColors.wakaTextSecondary,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              if (item.calories != null && item.calories! > 0) ...[
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.local_fire_department, 
+                      size: 14, 
+                      color: AppColors.wakaTextSecondary
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      '${item.calories} cal',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.wakaTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: 12),
+              Text(
+                item.orderNote,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppColors.wakaTextSecondary,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ],
-          ),
-        ],
-        SizedBox(height: 12),
-        Text(
-          item.orderNote,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: AppColors.wakaTextSecondary,
-            fontStyle: FontStyle.italic,
           ),
         ),
       ],
-    ),
-  );
-} 
+    );
+  }
 
- Widget _buildAboutSection() {
+  Widget _buildCardWithoutImage(MenuItem item) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  item.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.wakaTextPrimary,
+                  ),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.wakaBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '\$${item.price}',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.wakaBlue,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            item.description,
+            style: GoogleFonts.inter(
+              color: AppColors.wakaTextSecondary,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+          if (item.calories != null && item.calories! > 0) ...[
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.local_fire_department, 
+                  size: 14, 
+                  color: AppColors.wakaTextSecondary
+                ),
+                SizedBox(width: 4),
+                Text(
+                  '${item.calories} cal',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.wakaTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          SizedBox(height: 12),
+          Text(
+            item.orderNote,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: AppColors.wakaTextSecondary,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
+    );
+  } 
+
+  Widget _buildAboutSection(RestaurantModel restaurant) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'About ${widget.restaurant.name}',
+            'About ${restaurant.name}',
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -759,7 +921,7 @@ Widget _buildCardWithoutImage(MenuItem item) {
           ),
           SizedBox(height: 16),
           Text(
-            widget.restaurant.about,
+            restaurant.about,
             style: GoogleFonts.inter(
               fontSize: 15,
               height: 1.5,
@@ -771,7 +933,7 @@ Widget _buildCardWithoutImage(MenuItem item) {
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(RestaurantModel restaurant) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
@@ -791,18 +953,18 @@ Widget _buildCardWithoutImage(MenuItem item) {
             _ActionIcon(
               icon: Icons.phone,
               label: 'Call',
-              onTap: _launchPhone,
+              onTap: () => _launchPhone(restaurant.phone),
             ),
             const SizedBox(width: 12),
             _ActionIcon(
               icon: Icons.language,
               label: 'Website',
-              onTap: () => _launchUrl(widget.restaurant.website),
+              onTap: () => _launchUrl(restaurant.website),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: ElevatedButton(
-                onPressed: _launchOrderOnline,
+                onPressed: () => _launchOrderOnline(restaurant.orderLink),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.wakaBlue,
                   foregroundColor: Colors.white,
@@ -1018,44 +1180,7 @@ class _ActionIcon extends StatelessWidget {
   }
 }
 
-// Models
-class RestaurantDetail {
-  final String id;
-  final String name;
-  final String cuisine;
-  final String address;
-  final String distance;
-  final double rating;
-  final int reviewCount;
-  final bool isOpen;
-  final String hours;
-  final String phone;
-  final String website;
-  final String orderLink;
-  final String imageUrl;
-  final List<String> dietaryTags;
-  final List<MenuCategory> menuCategories;
-  final String about;
 
-  RestaurantDetail({
-    required this.id,
-    required this.name,
-    required this.cuisine,
-    required this.address,
-    required this.distance,
-    required this.rating,
-    required this.reviewCount,
-    required this.isOpen,
-    required this.hours,
-    required this.phone,
-    required this.website,
-    required this.orderLink,
-    required this.imageUrl,
-    required this.dietaryTags,
-    required this.menuCategories,
-    required this.about,
-  });
-}
 
 class MenuCategory {
   final String name;
@@ -1065,6 +1190,32 @@ class MenuCategory {
     required this.name,
     required this.items,
   });
+
+ factory MenuCategory.fromJson(Map<String, dynamic> json) {
+  print('📂 Parsing MenuCategory: ${json['name']}');
+  
+  return MenuCategory(
+    name: json['name']?.toString() ?? 'Uncategorized',
+    items: (json['items'] as List? ?? [])
+        .where((item) => item != null)
+        .map((item) {
+          try {
+            return MenuItem.fromJson(item as Map<String, dynamic>);
+          } catch (e) {
+            print('❌ Error parsing menu item: $e');
+            print('   Item data: $item');
+            // Return a default item to avoid breaking the whole list
+            return MenuItem(
+              name: 'Error loading item',
+              description: 'Could not load item details',
+              price: 0.0,
+              menuImageUrl: '',
+            );
+          }
+        })
+        .toList(),
+  );
+}
 }
 
 class MenuItem {
@@ -1083,4 +1234,15 @@ class MenuItem {
     this.calories,
     this.orderNote = 'Ordering redirects to restaurant website',
   });
+
+  factory MenuItem.fromJson(Map<String, dynamic> json) {
+    return MenuItem(
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
+      calories: json['calories'] ?? 0,
+      orderNote: json['orderNote'],
+      menuImageUrl: json['menuImageUrl'] ?? '',
+    );
+  }
 }

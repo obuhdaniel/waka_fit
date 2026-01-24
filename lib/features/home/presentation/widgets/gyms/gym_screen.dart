@@ -72,54 +72,81 @@ class _GymScreenState extends State<GymScreen> {
     ];
   }
 
-  List<GymModel> _filterGyms(List<GymModel> allGyms) {
-    List<GymModel> filtered = List.from(allGyms);
+ List<GymModel> _filterGyms(List<GymModel> allGyms) {
+  List<GymModel> filtered = List.from(allGyms);
 
-    // Apply search filter
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((gym) {
-        return gym.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            gym.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            gym.specialtyTags.any(
-                (tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase()));
-      }).toList();
-    }
-
-    // Apply specialty filter (skip "All")
-    if (_selectedSpecialtyIndex > 0) {
-      final specialty = _getSpecialtyList()[_selectedSpecialtyIndex];
-      filtered = filtered.where((gym) {
-        return gym.specialtyTags.any(
-            (tag) => tag.toLowerCase().contains(specialty.toLowerCase()));
-      }).toList();
-    }
-
-    // Apply rating filter
-    filtered = filtered.where((gym) => gym.rating >= _minRating).toList();
-
-    // Apply distance filter
-    filtered = filtered.where((gym) => gym.distance <= _maxDistance).toList();
-
-    // Apply price filter
-    filtered = filtered.where((gym) => gym.price <= _maxPrice).toList();
-
-    // Apply sorting
-    filtered.sort((a, b) {
-      switch (_currentSort) {
-        case GymSortOption.rating:
-          return b.rating.compareTo(a.rating);
-        case GymSortOption.distance:
-          return a.distance.compareTo(b.distance);
-        case GymSortOption.price:
-          return a.price.compareTo(b.price);
-        case GymSortOption.relevance:
-        default:
-          return 0; // Keep original order for relevance
-      }
-    });
-
-    return filtered;
+  // Apply search filter
+  if (_searchQuery.isNotEmpty) {
+    filtered = filtered.where((gym) {
+      return gym.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          gym.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          gym.specialtyTags.any((tag) => 
+              tag.toLowerCase().contains(_searchQuery.toLowerCase()));
+    }).toList();
   }
+
+  // Apply specialty filter (skip "All")
+  if (_selectedSpecialtyIndex > 0) {
+    final specialty = _getSpecialtyList()[_selectedSpecialtyIndex];
+    
+    // Normalize specialty for comparison
+    final normalizedSpecialty = specialty.toLowerCase();
+    
+    // SPECIALTY FILTERING LOGIC:
+    // This handles different matching scenarios:
+    // 1. Direct tag match (e.g., tag "Cardio" matches specialty "Cardio")
+    // 2. Tag contains specialty word (e.g., tag "Weight Loss Program" matches "Weight Loss")
+    // 3. Specialty contains tag word (e.g., tag "Fit" matches "CrossFit")
+    filtered = filtered.where((gym) {
+      return gym.specialtyTags.any((tag) {
+        final normalizedTag = tag.toLowerCase();
+        
+        // Check different matching patterns
+        return normalizedTag == normalizedSpecialty || // Exact match
+            normalizedTag.contains(normalizedSpecialty) || // Tag contains specialty
+            normalizedSpecialty.contains(normalizedTag) || // Specialty contains tag
+            // Handle compound specialties like "Weight Loss" vs "Weight Loss Program"
+            normalizedTag.split(' ').contains(normalizedSpecialty) ||
+            normalizedSpecialty.split(' ').contains(normalizedTag) ||
+            // Handle variations (e.g., "Bodybuilding" vs "Body Building")
+            normalizedTag.replaceAll(' ', '').contains(
+                normalizedSpecialty.replaceAll(' ', '')) ||
+            normalizedSpecialty.replaceAll(' ', '').contains(
+                normalizedTag.replaceAll(' ', ''));
+      });
+    }).toList();
+  }
+
+  // Apply rating filter
+  filtered = filtered.where((gym) => gym.rating >= _minRating).toList();
+
+  // Apply distance filter
+  filtered = filtered.where((gym) => gym.distance <= _maxDistance).toList();
+
+  // Apply price filter
+  filtered = filtered.where((gym) => gym.price <= _maxPrice).toList();
+
+  // Apply sorting
+  filtered.sort((a, b) {
+    switch (_currentSort) {
+      case GymSortOption.rating:
+        return b.rating.compareTo(a.rating);
+      case GymSortOption.distance:
+        return a.distance.compareTo(b.distance);
+      case GymSortOption.price:
+        return a.price.compareTo(b.price);
+      case GymSortOption.relevance:
+      default:
+        // For relevance, we can prioritize by rating first, then distance
+        if (a.rating != b.rating) {
+          return b.rating.compareTo(a.rating);
+        }
+        return a.distance.compareTo(b.distance);
+    }
+  });
+
+  return filtered;
+}
 
   void _showFilterSheet() {
     showModalBottomSheet(
@@ -167,6 +194,8 @@ class _GymScreenState extends State<GymScreen> {
     }
   }
 
+  
+
   int _getResponsiveCrossAxisCount(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
@@ -180,7 +209,7 @@ class _GymScreenState extends State<GymScreen> {
   Widget build(BuildContext context) {
     return Consumer<GymProvider>(
       builder: (context, provider, child) {
-        final filteredGyms = _filterGyms(provider.gyms);
+        final filteredGyms = (provider.gyms);
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,24 +226,24 @@ class _GymScreenState extends State<GymScreen> {
             ),
 
             // Specialty Chips
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.wakaSurface,
-                border: Border.symmetric(
-                  horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
-                ),
-              ),
-              child: GymSpecialtyChips(
-                specialties: _getSpecialtyList(),
-                onSpecialtySelected: (index) {
-                  setState(() {
-                    _selectedSpecialtyIndex = index;
-                  });
-                },
-                initialIndex: _selectedSpecialtyIndex,
-              ),
-            ),
+            // Container(
+            //   padding: const EdgeInsets.all(6),
+            //   decoration: BoxDecoration(
+            //     color: AppColors.wakaSurface,
+            //     border: Border.symmetric(
+            //       horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
+            //     ),
+            //   ),
+            //   child: GymSpecialtyChips(
+            //     specialties: _getSpecialtyList(),
+            //     onSpecialtySelected: (index) {
+            //       setState(() {
+            //         _selectedSpecialtyIndex = index;
+            //       });
+            //     },
+            //     initialIndex: _selectedSpecialtyIndex,
+            //   ),
+            // ),
 
             const SizedBox(height: 8),
 

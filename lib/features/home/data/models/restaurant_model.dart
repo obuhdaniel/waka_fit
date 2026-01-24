@@ -1,4 +1,3 @@
-// lib/features/restaurants/models/restaurant_model.dart
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_detail_screen.dart';
 
 class RestaurantModel {
@@ -18,6 +17,8 @@ class RestaurantModel {
   final String website;
   final String orderLink;
   final List<String> specialtyTags;
+  final List<MenuCategory> menuCategories; // Added this
+  final String about; // Added this
   bool isSaved;
 
   RestaurantModel({
@@ -25,7 +26,7 @@ class RestaurantModel {
     required this.name,
     required this.cuisine,
     required this.address,
-    required this.distance,
+    this.distance = 0,
     required this.rating,
     required this.reviewCount,
     required this.price,
@@ -37,72 +38,40 @@ class RestaurantModel {
     required this.website,
     required this.orderLink,
     required this.specialtyTags,
+    this.menuCategories = const [],
+    this.about = '',
     this.isSaved = false,
   });
 
-  RestaurantDetail toRestaurantDetail() {
-    return RestaurantDetail(
-      id: id,
-      name: name,
-      cuisine: cuisine,
-      address: address,
-      distance: '$distance mi from you',
-      rating: rating,
-      reviewCount: reviewCount,
-      isOpen: isOpen,
-      hours: hours,
-      phone: phone,
-      website: website,
-      orderLink: orderLink,
-      imageUrl: imageUrl,
-      dietaryTags: dietaryTags,
-      menuCategories: [
-        MenuCategory(
-          name: 'Bowls',
-          items: [
-            MenuItem(
-              name: 'Quinoa Power Bowl',
-              description: 'Organic quinoa, grilled chicken, roasted vegetables, avocado, tahini dressing',
-              price: 14.99,
-              calories: 520,
-              orderNote: 'Ordering redirects to FreshBowl website',
-              menuImageUrl: ''
-            ),
-            MenuItem(
-              name: 'Acai Superfood Bowl',
-              description: 'Acai blend, granola, mixed berries, banana, honey, coconut flakes',
-              price: 12.99,
-              calories: 380,
-              menuImageUrl: 'https://picsum.photos/200/300?random=5'
-            ),
-          ],
-        ),
-        MenuCategory(
-          name: 'Salads',
-          items: [
-            MenuItem(
-              name: 'Mediterranean Salad',
-              description: 'Mixed greens, feta, olives, cucumber, tomato, red onion, lemon vinaigrette',
-              price: 11.99,
-              calories: 320,
-              menuImageUrl: 'https://picsum.photos/200/300?random=5'
-            ),
-          ],
-        ),
-        MenuCategory(
-          name: 'Smoothies',
-          items: [
-            MenuItem(
-              name: 'Green Detox Smoothie',
-              description: 'Spinach, kale, pineapple, banana, ginger, coconut water',
-              price: 8.99,
-              calories: 210,
-              menuImageUrl: 'https://picsum.photos/200/300?random=5'
-            ),
-          ],
-        ),
-      ],
-      about: 'FreshBowl is dedicated to serving fresh, healthy, and delicious meals made with locally sourced ingredients. Our menu focuses on nutrient-dense bowls, salads, and smoothies that support your fitness goals.',
+  
+
+  
+
+  factory RestaurantModel.fromJson(Map<String, dynamic> json) {
+    return RestaurantModel(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      cuisine: json['cuisine'] ?? '',
+      address: json['address'] ?? '',
+      // Handling API using 'latitude' for distance or similar
+      distance: double.tryParse(json['latitude']?.toString() ?? '0') ?? 0,
+      rating: double.tryParse(json['rating']?.toString() ?? '0') ?? 0,
+      reviewCount: json['reviewCount'] ?? 0,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
+      imageUrl: json['imageUrl'] ?? '',
+      dietaryTags: List<String>.from(json['dietaryTags'] ?? []),
+      isOpen: json['isOpen'] ?? true,
+      hours: json['hours'] ?? '',
+      phone: json['phone'] ?? '',
+      website: json['website'] ?? '',
+      orderLink: json['orderLink'] ?? '',
+      specialtyTags: List<String>.from(json['specialtyTags'] ?? []),
+      about: json['about'] ?? '',
+      // Map the nested menu categories
+      menuCategories: (json['menuCategories'] as List? ?? [])
+          .map((category) => MenuCategory.fromJson(category))
+          .toList(),
+      isSaved: false,
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:waka_fit/features/authentitcation/pages/providers/auth_provider.
 import 'package:waka_fit/features/home/providers/coach_provider.dart';
 import 'package:waka_fit/features/home/providers/coaches_screen_provider.dart';
 import 'package:waka_fit/features/home/providers/gym_providers.dart';
+import 'package:waka_fit/features/home/providers/restaurants_provider.dart';
 import 'package:waka_fit/features/onboarding/onboarding_screen.dart';
 import 'package:waka_fit/features/onboarding/splash_screen.dart';
 import 'package:waka_fit/shared/providers/onboarding_provider.dart';
@@ -158,7 +159,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => GymProvider()),
         ChangeNotifierProvider(create: (_) => CoachProvider()),
-         ChangeNotifierProvider(create: (_) => CoachesScreenProvider()),
+         ChangeNotifierProvider(create: (_) => RestaurantProvider()),
         // ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => OnboardingProvider()),
         ChangeNotifierProvider(create: (_) => AppAuthProvider()),
