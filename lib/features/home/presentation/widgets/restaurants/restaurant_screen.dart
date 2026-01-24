@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
-import 'package:waka_fit/features/home/models/restaurant_model.dart';
+import 'package:waka_fit/features/home/data/models/restaurant_model.dart';
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_card.dart';
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_detail_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_filter_sheet.dart';

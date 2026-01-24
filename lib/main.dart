@@ -6,6 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:waka_fit/core/components/dismiss_keyboard.dart';
 import 'package:waka_fit/core/theme/theme_manager.dart';
 import 'package:waka_fit/features/authentitcation/pages/providers/auth_provider.dart';
+import 'package:waka_fit/features/home/providers/coach_provider.dart';
+import 'package:waka_fit/features/home/providers/coaches_screen_provider.dart';
+import 'package:waka_fit/features/home/providers/gym_providers.dart';
 import 'package:waka_fit/features/onboarding/onboarding_screen.dart';
 import 'package:waka_fit/features/onboarding/splash_screen.dart';
 import 'package:waka_fit/shared/providers/onboarding_provider.dart';
@@ -153,6 +156,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => GymProvider()),
+        ChangeNotifierProvider(create: (_) => CoachProvider()),
+         ChangeNotifierProvider(create: (_) => CoachesScreenProvider()),
         // ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => OnboardingProvider()),
         ChangeNotifierProvider(create: (_) => AppAuthProvider()),

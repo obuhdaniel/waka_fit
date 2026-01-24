@@ -1,13 +1,15 @@
 // lib/features/gyms/screens/gym_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
-import 'package:waka_fit/features/home/models/gym_model.dart';
+import 'package:waka_fit/features/home/data/models/gym_model.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_card.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_detail_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_filter_sheet.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_search_bar.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_specialty_chips.dart';
+import 'package:waka_fit/features/home/providers/gym_providers.dart';
 
 enum GymSortOption {
   relevance,
@@ -25,8 +27,6 @@ class GymScreen extends StatefulWidget {
 
 class _GymScreenState extends State<GymScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final List<GymModel> _gyms = [];
-  List<GymModel> _filteredGyms = [];
   int _selectedSpecialtyIndex = 0;
   String _searchQuery = '';
   GymSortOption _currentSort = GymSortOption.relevance;
@@ -37,7 +37,9 @@ class _GymScreenState extends State<GymScreen> {
   @override
   void initState() {
     super.initState();
-    _loadGyms();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadGyms();
+    });
   }
 
   @override
@@ -46,173 +48,32 @@ class _GymScreenState extends State<GymScreen> {
     super.dispose();
   }
 
-  void _loadGyms() {
-    // Mock gym data
-    _gyms.addAll([
-      GymModel(
-        id: '1',
-        name: 'PowerHouse Fitness',
-        address: '245 Atlantic Avenue, Brooklyn, NY 11201',
-        distance: 0.8,
-        rating: 4.7,
-        reviewCount: 189,
-        type: 'Premium Gym • 24/7 Access',
-        price: 89,
-        imageUrl: 'https://picsum.photos/200/300?random=1',
-        amenities: [
-          'Strength Equipment',
-          'Cardio Machines',
-          'Group Classes',
-          'Pool',
-          'Sauna',
-          'Parking',
-          'Locker Rooms',
-          'Personal Training',
-        ],
-        isOpen: true,
-        hours: '5:00 AM - 10:00 PM',
-        phone: '(347) 555-1234',
-        website: 'powerhousefitness.com',
-        specialtyTags: ['Strength', 'Cardio', '24/7', 'Premium'],
-        about:
-            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
-      ),
-      GymModel(
-        id: '2',
-        name: 'CrossFit Central',
-        address: '123 Main Street, Brooklyn, NY 11201',
-        distance: 1.2,
-        rating: 4.9,
-        reviewCount: 245,
-        type: 'CrossFit Box • Community',
-        price: 120,
-        imageUrl: 'https://picsum.photos/200/300?random=2',
-        amenities: [
-          'CrossFit Equipment',
-          'Coaching',
-          'Community Events',
-          'Weightlifting',
-        ],
-        isOpen: true,
-        hours: '6:00 AM - 9:00 PM',
-        phone: '(347) 555-5678',
-        website: 'crossfitcentral.com',
-        specialtyTags: ['CrossFit', 'Strength', 'Community', 'Coaching'],
-         about:
-            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
-
-      ),
-      GymModel(
-        id: '3',
-        name: 'Yoga Harmony Studio',
-        address: '789 Park Avenue, Brooklyn, NY 11201',
-        distance: 2.5,
-        rating: 4.8,
-        reviewCount: 156,
-        type: 'Yoga & Meditation • Holistic',
-        price: 75,
-        imageUrl: 'https://picsum.photos/200/300?random=3',
-        amenities: [
-          'Yoga Mats',
-          'Meditation Room',
-          'Hot Yoga',
-          'Sound Healing',
-          'Workshops',
-        ],
-        isOpen: true,
-        hours: '7:00 AM - 8:00 PM',
-        phone: '(347) 555-9012',
-        website: 'yogaharmony.com',
-        specialtyTags: ['Yoga', 'Meditation', 'Holistic', 'Wellness'],
-         about:
-            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
-
-      ),
-      GymModel(
-        id: '4',
-        name: 'Elite Performance',
-        address: '456 Fitness Way, Brooklyn, NY 11201',
-        distance: 0.5,
-        rating: 4.6,
-        reviewCount: 98,
-        type: 'Performance Training • Sports',
-        price: 150,
-        imageUrl: 'https://picsum.photos/200/300?random=4',
-        amenities: [
-          'Sports Training',
-          'Recovery Equipment',
-          'Physical Therapy',
-          'Nutrition Counseling',
-          'Biomechanics',
-        ],
-        isOpen: true,
-        hours: '24/7',
-        phone: '(347) 555-3456',
-        website: 'eliteperformance.com',
-        specialtyTags: ['Performance', 'Sports', 'Recovery', 'Training'],
-         about:
-            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
-
-      ),
-      GymModel(
-        id: '5',
-        name: 'Urban Fit Club',
-        address: '321 City Center, Brooklyn, NY 11201',
-        distance: 1.8,
-        rating: 4.4,
-        reviewCount: 187,
-        type: 'All-in-One • Modern',
-        price: 65,
-        imageUrl: 'https://picsum.photos/200/300?random=5',
-        amenities: [
-          'Full Equipment',
-          'Group Classes',
-          'Cardio Cinema',
-          'Cafe',
-          'Kids Zone',
-        ],
-        isOpen: true,
-        hours: '5:00 AM - 11:00 PM',
-        phone: '(347) 555-7890',
-        website: 'urbanfitclub.com',
-        specialtyTags: ['Modern', 'All-in-One', 'Family', 'Classes'],
-         about:
-            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
-
-      ),
-      GymModel(
-        id: '6',
-        name: 'Iron Temple',
-        address: '987 Strong Street, Brooklyn, NY 11201',
-        distance: 3.2,
-        rating: 4.9,
-        reviewCount: 312,
-        type: 'Bodybuilding • Powerlifting',
-        price: 95,
-        imageUrl: 'https://picsum.photos/200/300?random=6',
-        amenities: [
-          'Power Racks',
-          'Free Weights',
-          'Strongman Equipment',
-          'Bodybuilding',
-          'Competition Prep',
-        ],
-        isOpen: true,
-        hours: '24/7',
-        phone: '(347) 555-2345',
-        website: 'irontemple.com',
-        specialtyTags: ['Strength', 'Bodybuilding', 'Powerlifting', '24/7'],
-         about:
-            'PowerHouse Fitness is a state-of-the-art gym located in the heart of Brooklyn. We offer a wide range of equipment and classes to help you achieve your fitness goals. Our 24/7 access allows you to work out on your schedule, and our premium amenities ensure a comfortable and motivating environment.',
-
-      ),
-    ]);
-
-    _filterGyms();
+  Future<void> _loadGyms() async {
+    final provider = Provider.of<GymProvider>(context, listen: false);
+    await provider.fetchAllGyms();
   }
 
-  void _filterGyms() {
-    List<GymModel> filtered = List.from(_gyms);
+  Future<void> _refreshGyms() async {
+    await _loadGyms();
+  }
+
+  List<String> _getSpecialtyList() {
+    return [
+      'All',
+      'Weight Loss',
+      'Bodybuilding',
+      'Cardio',
+      'Yoga',
+      'CrossFit',
+      'Premium',
+      'Budget',
+      'Family',
+      'Community',
+    ];
+  }
+
+  List<GymModel> _filterGyms(List<GymModel> allGyms) {
+    List<GymModel> filtered = List.from(allGyms);
 
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
@@ -257,24 +118,7 @@ class _GymScreenState extends State<GymScreen> {
       }
     });
 
-    setState(() {
-      _filteredGyms = filtered;
-    });
-  }
-
-  List<String> _getSpecialtyList() {
-    return [
-      'All',
-      '24/7',
-      'Strength',
-      'Cardio',
-      'Yoga',
-      'CrossFit',
-      'Premium',
-      'Budget',
-      'Family',
-      'Community',
-    ];
+    return filtered;
   }
 
   void _showFilterSheet() {
@@ -295,7 +139,6 @@ class _GymScreenState extends State<GymScreen> {
               _maxDistance = filters['maxDistance'];
               _maxPrice = filters['maxPrice'];
             });
-            _filterGyms();
           },
         );
       },
@@ -311,16 +154,17 @@ class _GymScreenState extends State<GymScreen> {
     );
   }
 
-  void _toggleSave(int index) {
-    setState(() {
-      _filteredGyms[index].isSaved = !_filteredGyms[index].isSaved;
-      // Update original list too
-      final originalIndex =
-          _gyms.indexWhere((gym) => gym.id == _filteredGyms[index].id);
-      if (originalIndex != -1) {
-        _gyms[originalIndex].isSaved = _filteredGyms[index].isSaved;
-      }
-    });
+  Future<void> _toggleSave(GymModel gym, GymProvider provider) async {
+    try {
+      await provider.toggleSaveGym(gym.id);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update saved status: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   int _getResponsiveCrossAxisCount(BuildContext context) {
@@ -332,160 +176,313 @@ class _GymScreenState extends State<GymScreen> {
     return 1; // Mobile
   }
 
-  double _getResponsiveAspectRatio(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final crossAxisCount = _getResponsiveCrossAxisCount(context);
-
-    // Calculate card width accounting for padding and spacing
-    final totalHorizontalPadding = 32.0; // 16 * 2
-    final totalSpacing = 12.0 * (crossAxisCount - 1);
-    final cardWidth = (width - totalHorizontalPadding - totalSpacing) / crossAxisCount;
-
-    // Desired card height for GymCard
-    final desiredCardHeight = cardWidth * 1.8;
-
-    return cardWidth / desiredCardHeight;
-  }
-
- @override
-Widget build(BuildContext context) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Search Bar
-      GymsSearchBar(
-        controller: _searchController,
-        onSearch: (query) {
-          setState(() {
-            _searchQuery = query;
-          });
-          _filterGyms();
-        },
-        onFilterTap: _showFilterSheet,
-      ),
-
-      // Specialty Chips
-      Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: AppColors.wakaSurface,
-          border: Border.symmetric(
-            horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
-          ),
-        ),
-        child: GymSpecialtyChips(
-          specialties: _getSpecialtyList(),
-          onSpecialtySelected: (index) {
-            setState(() {
-              _selectedSpecialtyIndex = index;
-            });
-            _filterGyms();
-          },
-          initialIndex: _selectedSpecialtyIndex,
-        ),
-      ),
-
-      const SizedBox(height: 8),
-
-      // Results count
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Text(
-          '${_filteredGyms.length} gyms found',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.6),
-          ),
-        ),
-      ),
-
-      const SizedBox(height: 8),
-
-      // Gyms Grid
-      if (_filteredGyms.isEmpty)
-        _buildEmptyState()
-      else
-        GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          itemCount: _filteredGyms.length,
-          shrinkWrap: true, // ✅ KEY
-          physics: const NeverScrollableScrollPhysics(), // ✅ KEY
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: _getResponsiveCrossAxisCount(context),
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.6,
-          ),
-          itemBuilder: (context, index) {
-            final gym = _filteredGyms[index];
-            return GymCard(
-              name: gym.name,
-              type: gym.type,
-              rating: gym.rating.toStringAsFixed(1),
-              distance: '${gym.distance} mi',
-              price: '\$${gym.price.toInt()}/mo',
-              amenities: gym.amenities.take(3).toList(),
-              imageUrl: gym.imageUrl,
-              onTap: () => _navigateToGymDetail(gym),
-              onSave: () => _toggleSave(index),
-            );
-          },
-        ),
-    ],
-  );
-}
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.fitness_center_outlined,
-            size: 80,
-            color: AppColors.wakaBlue.withOpacity(0.5),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'No gyms found',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GymProvider>(
+      builder: (context, provider, child) {
+        final filteredGyms = _filterGyms(provider.gyms);
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Search Bar
+            GymsSearchBar(
+              controller: _searchController,
+              onSearch: (query) {
+                setState(() {
+                  _searchQuery = query;
+                });
+              },
+              onFilterTap: _showFilterSheet,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try adjusting your filters or search terms',
-            style: GoogleFonts.inter(
-              color: Colors.white.withOpacity(0.6),
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Clear filters
-              setState(() {
-                _selectedSpecialtyIndex = 0;
-                _searchQuery = '';
-                _searchController.clear();
-                _minRating = 4.0;
-                _maxDistance = 10.0;
-                _maxPrice = 200.0;
-                _currentSort = GymSortOption.relevance;
-              });
-              _filterGyms();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.wakaBlue,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+
+            // Specialty Chips
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.wakaSurface,
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
+                ),
+              ),
+              child: GymSpecialtyChips(
+                specialties: _getSpecialtyList(),
+                onSpecialtySelected: (index) {
+                  setState(() {
+                    _selectedSpecialtyIndex = index;
+                  });
+                },
+                initialIndex: _selectedSpecialtyIndex,
               ),
             ),
-            child: const Text('Clear All Filters'),
+
+            const SizedBox(height: 8),
+
+            // Results count and loading/error states
+            _buildStatusSection(provider, filteredGyms),
+
+            const SizedBox(height: 8),
+
+            // Gyms Grid
+            _buildGymsGrid(provider, filteredGyms),
+          ],
+        );
+      },
+    );
+  }
+Widget _buildStatusSection(GymProvider provider, List<GymModel> filteredGyms) {
+  // 1. Loading State: Use a smoother transition or themed indicator
+  if (provider.isLoading && provider.gyms.isEmpty) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Center(
+        child: SizedBox(
+          height: 2,
+          child: LinearProgressIndicator(
+            backgroundColor: AppColors.wakaSurface,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.wakaBlue),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 2. Error State: Added an icon and better visual grouping
+  if (provider.error != null && provider.gyms.isEmpty) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            'Ops! Failed to load gyms',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.red,
+            ),
+          ),
+          Text(
+            provider.error.toString(), // Brief error detail
+            style: GoogleFonts.inter(fontSize: 12, color: Colors.red[300]),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: _refreshGyms,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Try Again'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: AppColors.wakaBlue,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  // 3. Success State: Adding a "Badge" feel to the results count
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Nearby Gyms',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.wakaBlue.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${filteredGyms.length}',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.wakaBlue,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (provider.isLoading) // Small spinner if refreshing in background
+          const SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+      ],
+    ),
+  );
+}
+  Widget _buildGymsGrid(GymProvider provider, List<GymModel> filteredGyms) {
+    if (filteredGyms.isEmpty && !provider.isLoading && provider.error == null) {
+      return _buildEmptyState(provider);
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshGyms,
+      backgroundColor: AppColors.wakaBackground,
+      color: AppColors.wakaBlue,
+      child: GridView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        itemCount: filteredGyms.length,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: _getResponsiveCrossAxisCount(context),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.6,
+        ),
+        itemBuilder: (context, index) {
+          final gym = filteredGyms[index];
+          return GymCard(
+            name: gym.name,
+            type: gym.type,
+            rating: gym.rating.toStringAsFixed(1),
+            distance: '${gym.distance} mi',
+            price: '\$${gym.price.toInt()}/mo',
+            amenities: gym.amenities.take(3).toList(),
+            imageUrl: gym.imageUrl,
+            onTap: () => _navigateToGymDetail(gym),
+            onSave: () => _toggleSave(gym, provider),
+            isSaved: gym.isSaved,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(GymProvider provider) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 48),
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // 🔑 don't try to fill height
+        children: [
+          if (provider.gyms.isEmpty && !provider.isLoading)
+            _buildNoGymsState()
+          else
+            _buildNoResultsState(),
+        ],
+      ),
+    ),
+  );
+}
+
+
+  Widget _buildNoGymsState() {
+    return Column(
+      children: [
+        Icon(
+          Icons.fitness_center_outlined,
+          size: 80,
+          color: AppColors.wakaBlue.withOpacity(0.5),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'No gyms available',
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Be the first to add a gym in your area!',
+          style: GoogleFonts.inter(
+            color: Colors.white.withOpacity(0.6),
+          ),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {
+            // TODO: Navigate to create gym screen
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.wakaBlue,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          child: const Text('Add Your Gym'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNoResultsState() {
+    return Column(
+      children: [
+        Icon(
+          Icons.search_off_outlined,
+          size: 80,
+          color: AppColors.wakaBlue.withOpacity(0.5),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'No matching gyms found',
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Try adjusting your filters or search terms',
+          style: GoogleFonts.inter(
+            color: Colors.white.withOpacity(0.6),
+          ),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {
+            // Clear filters
+            setState(() {
+              _selectedSpecialtyIndex = 0;
+              _searchQuery = '';
+              _searchController.clear();
+              _minRating = 4.0;
+              _maxDistance = 10.0;
+              _maxPrice = 200.0;
+              _currentSort = GymSortOption.relevance;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.wakaBlue,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          child: const Text('Clear All Filters'),
+        ),
+      ],
     );
   }
 }

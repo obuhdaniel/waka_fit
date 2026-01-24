@@ -13,6 +13,7 @@ class GymCard extends StatefulWidget {
   final String imageUrl;
   final VoidCallback onTap;
   final VoidCallback onSave;
+   final bool isSaved;
 
   const GymCard({
     super.key,
@@ -25,6 +26,7 @@ class GymCard extends StatefulWidget {
     required this.imageUrl,
     required this.onTap,
     required this.onSave,
+    this.isSaved = false,
   });
 
   @override

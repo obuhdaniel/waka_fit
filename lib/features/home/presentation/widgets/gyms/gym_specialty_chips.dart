@@ -8,7 +8,7 @@ class GymSpecialtyChips extends StatefulWidget {
 
   const GymSpecialtyChips({
     Key? key,
-    this.specialties = const ['All', '24/7 Access', 'Classes', 'Pool ', 'Sauna'],
+    this.specialties = const ['All', 'Weight Loss', 'Bodybuilding', 'CrossFit ', 'Yoga'],
     required this.onSpecialtySelected,
     this.initialIndex = 0,
   }) : super(key: key);

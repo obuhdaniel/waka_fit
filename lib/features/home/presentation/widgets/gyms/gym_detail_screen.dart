@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
+import 'package:waka_fit/features/home/data/models/gym_model.dart';
 
 class GymDetailScreen extends StatefulWidget {
   final GymDetail gym;
@@ -913,60 +914,6 @@ class _BookingSheet extends StatelessWidget {
   }
 }
 
-// Models
-class GymDetail {
-  final String id;
-  final String name;
-  final String address;
-  final String distance;
-  final double rating;
-  final int reviewCount;
-  final String hours;
-  final String closingTime;
-  final String phone;
-  final String website;
-  final String imageUrl;
-  final List<String> amenities;
-  final List<String> additionalFeatures;
-  final List<MembershipOption> membershipOptions;
-  final String about;
-  final bool isOpen;
-  final double? monthlyPrice;
-
-  GymDetail({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.distance,
-    required this.rating,
-    required this.reviewCount,
-    required this.hours,
-    required this.closingTime,
-    required this.phone,
-    required this.website,
-    required this.imageUrl,
-    required this.amenities,
-    this.additionalFeatures = const [],
-    this.membershipOptions = const [],
-    this.isOpen = true,
-    this.monthlyPrice,
-    this.about = '',
-  });
-}
-
-class MembershipOption {
-  final String name;
-  final String price;
-  final String description;
-  final List<String> features;
-
-  MembershipOption({
-    required this.name,
-    required this.price,
-    required this.description,
-    this.features = const [],
-  });
-}
 
 class _ActionIcon extends StatelessWidget {
   final IconData icon;

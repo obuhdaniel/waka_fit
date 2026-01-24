@@ -1,12 +1,15 @@
 // lib/features/coaches/screens/coaches_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:waka_fit/core/theme/app_colors.dart';
-import 'package:waka_fit/features/home/models/coach_model.dart';
+import 'package:waka_fit/features/home/data/models/coach_model.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/coach_card.dart';
+import 'package:waka_fit/features/home/presentation/widgets/coaches/coach_details_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/coach_stats_summary.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/coaches_search_bar.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/sort_filter_sheet.dart';
 import 'package:waka_fit/features/home/presentation/widgets/coaches/specialty_chips.dart';
+import 'package:waka_fit/features/home/providers/coach_provider.dart';
 
 class CoachesScreen extends StatefulWidget {
   const CoachesScreen({Key? key}) : super(key: key);
@@ -17,8 +20,6 @@ class CoachesScreen extends StatefulWidget {
 
 class _CoachesScreenState extends State<CoachesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final List<CoachData> _coaches = [];
-  List<CoachData> _filteredCoaches = [];
   int _selectedSpecialtyIndex = 0;
   String _searchQuery = '';
   SortOption _currentSort = SortOption.relevance;
@@ -28,7 +29,7 @@ class _CoachesScreenState extends State<CoachesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCoaches();
+    _initializeData();
   }
 
   @override
@@ -37,68 +38,24 @@ class _CoachesScreenState extends State<CoachesScreen> {
     super.dispose();
   }
 
-  void _loadCoaches() {
-    // Mock data - replace with API call
-    _coaches.addAll([
-      CoachData(
-        name: 'Sarah Chen',
-        specialties: 'HIIT • NUTRITION',
-        followers: '8.5K',
-        rating: 4.9,
-        posts: 120,
-        plans: 45,
-        imageUrl: 'https://picsum.photos/200/300?random=1',
-        isFollowing: false,
-        distance: 2.5,
-        experience: 5,
-        specialtyTags: ['HIIT', 'Nutrition', 'Cardio'],
-      ),
-      CoachData(
-        name: 'Marcus Thompson',
-        specialties: 'STRENGTH • SPORTS',
-        followers: '12.3K',
-        rating: 4.8,
-        posts: 215,
-        plans: 67,
-        imageUrl: 'https://picsum.photos/200/300?random=2',
-        isFollowing: true,
-        distance: 3.2,
-        experience: 8,
-        specialtyTags: ['Strength', 'Sports', 'Weightlifting'],
-      ),
-      CoachData(
-        name: 'Alex Johnson',
-        specialties: 'YOGA • MEDITATION',
-        followers: '6.2K',
-        rating: 4.7,
-        posts: 89,
-        plans: 32,
-        imageUrl: 'https://picsum.photos/200/300?random=3',
-        isFollowing: false,
-        distance: 1.8,
-        experience: 4,
-        specialtyTags: ['Yoga', 'Meditation', 'Flexibility'],
-      ),
-      CoachData(
-        name: 'Maria Garcia',
-        specialties: 'NUTRITION • WEIGHT LOSS',
-        followers: '9.8K',
-        rating: 4.9,
-        posts: 156,
-        plans: 52,
-        imageUrl: 'https://picsum.photos/200/300?random=4',
-        isFollowing: false,
-        distance: 5.1,
-        experience: 6,
-        specialtyTags: ['Nutrition', 'Weight Loss', 'Diet'],
-      ),
-    ]);
-
-    _filterCoaches();
+  Future<void> _initializeData() async {
+    final provider = Provider.of<CoachProvider>(context, listen: false);
+    if (provider.coaches.isEmpty) {
+      await provider.fetchAllCoaches();
+    }
   }
 
-  void _filterCoaches() {
-    List<CoachData> filtered = List.from(_coaches);
+  void _navigateToCoachDetail(CoachData coach) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CoachDetailScreen(coach: coach),
+      ),
+    );
+  }
+
+  void _filterCoaches(List<CoachData> allCoaches, List<CoachData> filteredCoaches) {
+    List<CoachData> filtered = List.from(allCoaches);
 
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
@@ -148,9 +105,9 @@ class _CoachesScreenState extends State<CoachesScreen> {
       }
     });
 
-    setState(() {
-      _filteredCoaches = filtered;
-    });
+    // Update filtered list
+    filteredCoaches.clear();
+    filteredCoaches.addAll(filtered);
   }
 
   double _parseFollowers(String followers) {
@@ -181,129 +138,182 @@ class _CoachesScreenState extends State<CoachesScreen> {
               _minRating = filters['minRating'];
               _maxDistance = filters['maxDistance'];
             });
-            _filterCoaches();
           },
         );
       },
     );
   }
 
-  void _toggleFollow(int index) {
-    setState(() {
-      _filteredCoaches[index].isFollowing =
-          !_filteredCoaches[index].isFollowing;
-      // Update original list too
-      final originalIndex = _coaches.indexWhere(
-        (coach) => coach.name == _filteredCoaches[index].name,
-      );
-      if (originalIndex != -1) {
-        _coaches[originalIndex].isFollowing =
-            _filteredCoaches[index].isFollowing;
-      }
-    });
-  }
-
-  void _navigateToCoachDetail(int index) {
-    // Navigate to coach detail screen
-    final coach = _filteredCoaches[index];
-    // Navigator.push(context, MaterialPageRoute(
-    //   builder: (context) => CoachDetailScreen(coach: coach),
-    // ));
+  Future<void> _toggleFollow(CoachData coach, CoachProvider provider) async {
+    await provider.toggleFollowCoach(coach.id);
   }
 
   int _getResponsiveCrossAxisCount(BuildContext context) {
-  final width = MediaQuery.of(context).size.width;
-  
-  if (width >= 1200) return 4;      // Large desktop
-  if (width >= 900) return 3;       // Desktop/tablet landscape
-  if (width >= 600) return 2;       // Tablet portrait
-  return 2;                          // Mobile
-}
+    final width = MediaQuery.of(context).size.width;
+    
+    if (width >= 1200) return 4;      // Large desktop
+    if (width >= 900) return 3;       // Desktop/tablet landscape
+    if (width >= 600) return 2;       // Tablet portrait
+    return 2;                          // Mobile
+  }
 
-double _getResponsiveAspectRatio(BuildContext context) {
-  final width = MediaQuery.of(context).size.width;
-  final crossAxisCount = _getResponsiveCrossAxisCount(context);
-  
-  // Calculate card width accounting for padding and spacing
-  final totalHorizontalPadding = 32.0; // 16 * 2
-  final totalSpacing = 12.0 * (crossAxisCount - 1);
-  final cardWidth = (width - totalHorizontalPadding - totalSpacing) / crossAxisCount;
-  
-  // Desired card height (adjust this value based on your CoachCard design)
-  final desiredCardHeight = cardWidth * 2.4;
-  
-  return cardWidth / desiredCardHeight;
-}
+  double _getResponsiveAspectRatio(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final crossAxisCount = _getResponsiveCrossAxisCount(context);
+    
+    // Calculate card width accounting for padding and spacing
+    final totalHorizontalPadding = 32.0; // 16 * 2
+    final totalSpacing = 12.0 * (crossAxisCount - 1);
+    final cardWidth = (width - totalHorizontalPadding - totalSpacing) / crossAxisCount;
+    
+    // Desired card height (adjust this value based on your CoachCard design)
+    final desiredCardHeight = cardWidth * 2.4;
+    
+    return cardWidth / desiredCardHeight;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CoachesSearchBar(
-          controller: _searchController,
-          onSearch: (query) {
-            setState(() {
-              _searchQuery = query;
-            });
-            _filterCoaches();
-          },
-          onFilterTap: _showFilterSheet,
-        ),
+    return Consumer<CoachProvider>(
+      builder: (context, provider, child) {
+        // Apply filters to get the displayed coaches
+        List<CoachData> displayedCoaches = [];
+        _filterCoaches(provider.coaches, displayedCoaches);
 
-        Container(
-          padding: EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: AppColors.wakaSurface,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CoachesSearchBar(
+              controller: _searchController,
+              onSearch: (query) {
+                setState(() {
+                  _searchQuery = query;
+                });
+              },
+              onFilterTap: _showFilterSheet,
+            ),
 
-            border: Border.symmetric(
-              horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
+            Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.wakaSurface,
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: AppColors.wakaStroke, width: 2),
+                ),
+              ),
+              child: SpecialtyChips(
+                specialties: _getSpecialtyList(),
+                onSpecialtySelected: (index) {
+                  setState(() {
+                    _selectedSpecialtyIndex = index;
+                  });
+                },
+                initialIndex: _selectedSpecialtyIndex,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Loading state
+            if (provider.isLoading && displayedCoaches.isEmpty)
+              _buildLoadingState()
+            // Error state
+            else if (provider.error != null && displayedCoaches.isEmpty)
+              _buildErrorState(provider.error!, provider)
+            // Empty state
+            else if (displayedCoaches.isEmpty)
+              _buildEmptyState()
+            // Data state
+            else
+              GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                itemCount: displayedCoaches.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: _getResponsiveCrossAxisCount(context),
+                  crossAxisSpacing: 2,
+                  mainAxisSpacing: 2,
+                  childAspectRatio: _getResponsiveAspectRatio(context),
+                ),
+                itemBuilder: (context, index) {
+                  final coach = displayedCoaches[index];
+                  return CoachCard(
+                    name: coach.name,
+                    specialties: coach.specialties,
+                    followers: coach.followers,
+                    rating: coach.rating,
+                    posts: coach.posts,
+                    plans: coach.plans,
+                    imageUrl: coach.imageUrl,
+                    isFollowing: coach.isFollowing,
+                    onFollowTap: () => _toggleFollow(coach, provider),
+                    onCoachTap: () => _navigateToCoachDetail(coach),
+                  );
+                },
+              )
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: AppColors.primary),
+          const SizedBox(height: 20),
+          Text(
+            'Loading coaches...',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
             ),
           ),
-          child: SpecialtyChips(
-            specialties: _getSpecialtyList(),
-            onSpecialtySelected: (index) {
-              setState(() {
-                _selectedSpecialtyIndex = index;
-              });
-              _filterCoaches();
-            },
-            initialIndex: _selectedSpecialtyIndex,
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        if (_filteredCoaches.isEmpty)
-          _buildEmptyState()
-        else
-      GridView.builder(
-  padding: const EdgeInsets.symmetric(horizontal: 4),
-  itemCount: _filteredCoaches.length,
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: _getResponsiveCrossAxisCount(context),
-    crossAxisSpacing: 2,
-    mainAxisSpacing: 2,
-    childAspectRatio: _getResponsiveAspectRatio(context),
-  ),
-  itemBuilder: (context, index) {
-    final coach = _filteredCoaches[index];
-    return CoachCard(
-      name: coach.name,
-      specialties: coach.specialties,
-      followers: coach.followers,
-      rating: coach.rating,
-      posts: coach.posts,
-      plans: coach.plans,
-      imageUrl: coach.imageUrl,
-      isFollowing: coach.isFollowing,
-      onFollowTap: () => _toggleFollow(index),
-      onCoachTap: () => _navigateToCoachDetail(index),
+        ],
+      ),
     );
-  },
-) ]);
+  }
+
+  Widget _buildErrorState(String error, CoachProvider provider) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 80, color: AppColors.error),
+          const SizedBox(height: 20),
+          Text(
+            'Failed to load coaches',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.error,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            style: TextStyle(color: AppColors.textTertiary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              provider.clearError();
+              _initializeData();
+            },
+            child: Text('Retry'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildEmptyState() {
