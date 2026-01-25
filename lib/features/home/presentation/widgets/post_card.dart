@@ -128,52 +128,52 @@ class PostCard extends StatelessWidget {
             const SizedBox(height: 16),
             
             // Stats
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                _buildStatButton(
-                  icon: Icons.favorite_border,
-                  count: likes,
-                  onPressed: onLike,
-                ),
-                _buildStatButton(
-                  icon: Icons.comment_outlined,
-                  count: comments,
-                  onPressed: () {},
-                ),
-                _buildStatButton(
-                  icon: Icons.share_outlined,
-                  count: shares,
-                  onPressed: () {},
-                ),
-              ],
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.start,
+            //   children: [
+            //     _buildStatButton(
+            //       icon: Icons.favorite_border,
+            //       count: likes,
+            //       onPressed: onLike,
+            //     ),
+            //     _buildStatButton(
+            //       icon: Icons.comment_outlined,
+            //       count: comments,
+            //       onPressed: () {},
+            //     ),
+            //     _buildStatButton(
+            //       icon: Icons.share_outlined,
+            //       count: shares,
+            //       onPressed: () {},
+            //     ),
+            //   ],
+            // ),
             
             // View full post
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: onTap,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'View Full Post',
-                      style: TextStyle(
-                        color: AppColors.wakaBlue,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward,
-                      size: 16,
-                      color: AppColors.wakaBlue,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Align(
+            //   alignment: Alignment.centerLeft,
+            //   child: TextButton(
+            //     onPressed: onTap,
+            //     child: Row(
+            //       mainAxisSize: MainAxisSize.min,
+            //       children: [
+            //         Text(
+            //           'View Full Post',
+            //           style: TextStyle(
+            //             color: AppColors.wakaBlue,
+            //             fontWeight: FontWeight.w600,
+            //           ),
+            //         ),
+            //         const SizedBox(width: 4),
+            //         Icon(
+            //           Icons.arrow_forward,
+            //           size: 16,
+            //           color: AppColors.wakaBlue,
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

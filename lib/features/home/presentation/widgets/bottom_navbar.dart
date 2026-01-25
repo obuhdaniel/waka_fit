@@ -20,7 +20,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> {
   final List<Map<String, dynamic>> _items = [
     {'icon': Icons.home_outlined, 'label': 'Home', 'activeIcon': Icons.home},
     {'icon': Icons.explore_outlined, 'label': 'Discover', 'activeIcon': Icons.explore},
-    {'icon': Icons.bookmark_border, 'label': 'Saved', 'activeIcon': Icons.bookmark},
+    // {'icon': Icons.bookmark_border, 'label': 'Saved', 'activeIcon': Icons.bookmark},
     {'icon': Icons.person_outline, 'label': 'Profile', 'activeIcon': Icons.person},
   ];
 

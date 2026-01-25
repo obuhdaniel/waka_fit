@@ -7,6 +7,7 @@ import 'package:waka_fit/features/home/presentation/widgets/fyp.dart';
 import 'package:waka_fit/features/home/presentation/widgets/gyms/gym_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/restaurants/restaurant_screen.dart';
 import 'package:waka_fit/features/home/presentation/widgets/top_bar.dart';
+import 'package:waka_fit/shared/helpers/preferences_manager.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -17,7 +18,30 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentCategoryIndex = 0;
-  String _location = 'Brooklyn, NY';
+  String _location = '';
+
+
+  @override  void initState() {
+    super.initState();  
+    _loadLocation();
+  }
+
+
+
+    Future<void> _loadLocation() async {
+    final prefs = PreferencesManager();
+    final location = await prefs.getLocation();
+
+    if (!mounted) return;
+    setState(() {
+      _location = _formatLocation(location);
+    });
+  }
+
+    String _formatLocation(String raw) {
+    if (raw == 'current_location') return 'Near you';
+    return raw;
+  }
 
   @override
   Widget build(BuildContext context) {

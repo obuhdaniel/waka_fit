@@ -19,7 +19,6 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const DiscoverScreen(),
-    const DiscoverScreen(),
     const ProfilePage(),
   ];
 

@@ -213,26 +213,26 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
         ),
       ),
       actions: [
-        Container(
-          margin: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.wakaSurface,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(Icons.share_outlined, color: AppColors.wakaTextPrimary),
-            onPressed: () {
-              // Share functionality
-            },
-          ),
-        ),
+        // Container(
+        //   margin: EdgeInsets.all(8),
+        //   decoration: BoxDecoration(
+        //     color: AppColors.wakaSurface,
+        //     shape: BoxShape.circle,
+        //     boxShadow: [
+        //       BoxShadow(
+        //         color: Colors.black.withOpacity(0.1),
+        //         blurRadius: 8,
+        //         offset: Offset(0, 2),
+        //       ),
+        //     ],
+        //   ),
+        //   child: IconButton(
+        //     icon: Icon(Icons.share_outlined, color: AppColors.wakaTextPrimary),
+        //     onPressed: () {
+        //       // Share functionality
+        //     },
+        //   ),
+        // ),
         Container(
           margin: EdgeInsets.only(right: 8, top: 8, bottom: 8),
           decoration: BoxDecoration(
@@ -507,29 +507,29 @@ class _GymDetailScreenState extends State<GymDetailScreen> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.wakaBlue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Get Started',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: AppColors.wakaBackground
-                        ),
-                      ),
-                    ),
-                  ),
+                  // SizedBox(
+                  //   width: double.infinity,
+                  //   child: ElevatedButton(
+                  //     onPressed: () {},
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: AppColors.wakaBlue,
+                  //       foregroundColor: Colors.white,
+                  //       padding: EdgeInsets.symmetric(vertical: 14),
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(12),
+                  //       ),
+                  //       elevation: 0,
+                  //     ),
+                  //     child: Text(
+                  //       'Get Started',
+                  //       style: GoogleFonts.inter(
+                  //         fontWeight: FontWeight.w600,
+                  //         fontSize: 15,
+                  //         color: AppColors.wakaBackground
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             );
@@ -889,6 +889,7 @@ class _BookingSheet extends StatelessWidget {
             ),
             SizedBox(height: 24),
             ElevatedButton(
+              
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -900,7 +901,7 @@ class _BookingSheet extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Continue',
+                'Coming Soon',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

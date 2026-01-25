@@ -85,40 +85,23 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Edit profile button
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.cyanAccent,
-                side: const BorderSide(color: Colors.cyanAccent),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              ),
-              onPressed: () {},
-              child: const Text("Edit Profile"),
-            ),
+            // OutlinedButton(
+            //   style: OutlinedButton.styleFrom(
+            //     foregroundColor: Colors.cyanAccent,
+            //     side: const BorderSide(color: Colors.cyanAccent),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(12),
+            //     ),
+            //     padding:
+            //         const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            //   ),
+            //   onPressed: () {},
+            //   child: const Text("Edit Profile"),
+            // ),
 
             const SizedBox(height: 24),
 
-            // Stats card
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: const [
-                  _StatItem(label: "Following", value: "24"),
-                  _StatItem(label: "Saved", value: "18"),
-                  _StatItem(label: "Posts", value: "5"),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
+                      const SizedBox(height: 32),
 
             // Tabs
             Row(
@@ -132,19 +115,7 @@ class ProfilePage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Coaches section
-            _SectionHeader(title: "Coaches (8)"),
-            const SizedBox(height: 12),
-            _AvatarGrid(),
-
-            const SizedBox(height: 24),
-
-            // Gyms section
-            _SectionHeader(title: "Gyms (6)"),
-            const SizedBox(height: 12),
-            _AvatarGrid(),
-
-            const SizedBox(height: 40),
+                      const SizedBox(height: 40),
 
             // Logout (optional here or move to settings)
             TextButton(
@@ -166,23 +137,7 @@ class ProfilePage extends StatelessWidget {
         ),
       ),
     
-     floatingActionButton: FloatingActionButton(
-  backgroundColor: Colors.yellow,
-  onPressed: () async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final token = await user.getIdToken();
-      print("ID TOKEN: $token");
-      // Copy to clipboard
-      await Clipboard.setData(ClipboardData(text: token ?? ""));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Token copied to clipboard!")),
       );
-    }
-  },
-  child: Icon(Icons.key, color: Colors.black),
-),
-    );
   }
 }
 

@@ -919,24 +919,24 @@ class _CoachDetailScreenState extends State<CoachDetailScreen>
           ),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.wakaSurface.withOpacity(0.9),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.wakaStroke.withOpacity(0.3),
-              ),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.share_outlined,
-                color: AppColors.wakaTextPrimary,
-                size: 20,
-              ),
-              onPressed: () {},
-            ),
-          ),
+          // Container(
+          //   margin: const EdgeInsets.all(8),
+          //   decoration: BoxDecoration(
+          //     color: AppColors.wakaSurface.withOpacity(0.9),
+          //     shape: BoxShape.circle,
+          //     border: Border.all(
+          //       color: AppColors.wakaStroke.withOpacity(0.3),
+          //     ),
+          //   ),
+          //   child: IconButton(
+          //     icon: Icon(
+          //       Icons.share_outlined,
+          //       color: AppColors.wakaTextPrimary,
+          //       size: 20,
+          //     ),
+          //     onPressed: () {},
+          //   ),
+          // ),
           Container(
             margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
             decoration: BoxDecoration(

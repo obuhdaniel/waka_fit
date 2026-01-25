@@ -77,17 +77,17 @@ class TopBar extends StatelessWidget {
           const Spacer(),
           
           // Notification
-          IconButton(
-            onPressed: onNotificationTap,
-            icon: Badge(
-              backgroundColor: AppColors.wakaTextPrimary,
-              smallSize: 8,
-              child:  Icon(
-                Icons.notifications,
-                color: AppColors.wakaTextPrimary,
-              ),
-            ),
-          ),
+          // IconButton(
+          //   onPressed: onNotificationTap,
+          //   icon: Badge(
+          //     backgroundColor: AppColors.wakaTextPrimary,
+          //     smallSize: 8,
+          //     child:  Icon(
+          //       Icons.notifications,
+          //       color: AppColors.wakaTextPrimary,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

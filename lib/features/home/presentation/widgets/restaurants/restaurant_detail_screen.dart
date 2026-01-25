@@ -334,26 +334,26 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         ),
       ),
       actions: [
-        Container(
-          margin: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.wakaSurface,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(Icons.share_outlined, color: AppColors.wakaTextPrimary),
-            onPressed: () {
-              // Share functionality
-            },
-          ),
-        ),
+        // Container(
+        //   margin: EdgeInsets.all(8),
+        //   decoration: BoxDecoration(
+        //     color: AppColors.wakaSurface,
+        //     shape: BoxShape.circle,
+        //     boxShadow: [
+        //       BoxShadow(
+        //         color: Colors.black.withOpacity(0.1),
+        //         blurRadius: 8,
+        //         offset: Offset(0, 2),
+        //       ),
+        //     ],
+        //   ),
+        //   child: IconButton(
+        //     icon: Icon(Icons.share_outlined, color: AppColors.wakaTextPrimary),
+        //     onPressed: () {
+        //       // Share functionality
+        //     },
+        //   ),
+        // ),
         Container(
           margin: EdgeInsets.only(right: 8, top: 8, bottom: 8),
           decoration: BoxDecoration(
@@ -415,7 +415,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           Icon(Icons.directions, color: AppColors.wakaBlue, size: 18),
                           SizedBox(width: 8),
                           Text(
-                            'Get Directions',
+                            'Get Directions (Beta)',
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -435,13 +435,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           // Distance and hours
           Row(
             children: [
-              _StatusChip(
-                icon: Icons.location_on,
-                label: restaurant.distance.toString(),
-                value: 'from you',
-                color: AppColors.wakaBlue,
-              ),
-              SizedBox(width: 16),
+              // _StatusChip(
+              //   icon: Icons.location_on,
+              //   label: restaurant.distance.toString(),
+              //   value: 'from you',
+              //   color: AppColors.wakaBlue,
+              // ),
+              // SizedBox(width: 16),
               _StatusChip(
                 icon: Icons.access_time,
                 label: restaurant.isOpen ? 'Open' : 'Closed',
@@ -478,15 +478,15 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                   ),
                 ),
                 Spacer(),
-                Text(
-                  'See Reviews',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.wakaBlue,
-                  ),
-                ),
-                Icon(Icons.chevron_right, size: 18, color: AppColors.wakaBlue),
+                // Text(
+                //   'See Reviews',
+                //   style: GoogleFonts.inter(
+                //     fontSize: 14,
+                //     fontWeight: FontWeight.w600,
+                //     color: AppColors.wakaBlue,
+                //   ),
+                // ),
+                // Icon(Icons.chevron_right, size: 18, color: AppColors.wakaBlue),
               ],
             ),
           ),

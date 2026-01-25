@@ -39,7 +39,8 @@ class _GymsSearchBarState extends State<GymsSearchBar> {
       _location = _formatLocation(location);
     });
   }
-    String _formatLocation(String raw) {
+  
+  String _formatLocation(String raw) {
     if (raw == 'current_location') return 'Near you';
     return raw;
   }

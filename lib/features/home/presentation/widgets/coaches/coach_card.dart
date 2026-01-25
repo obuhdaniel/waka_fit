@@ -122,30 +122,30 @@ class CoachCard extends StatelessWidget {
             const Spacer(),
 
             // Follow button
-            SizedBox(
-              width: double.infinity,
-              height: 40,
-              child: OutlinedButton(
-                onPressed: onFollowTap,
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(
-                    color: AppColors.wakaBlue,
-                    width: 1.2,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                child: Text(
-                  isFollowing ? 'Following' : 'Follow',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.wakaBlue,
-                  ),
-                ),
-              ),
-            ),
+            // SizedBox(
+            //   width: double.infinity,
+            //   height: 40,
+            //   child: OutlinedButton(
+            //     onPressed: onFollowTap,
+            //     style: OutlinedButton.styleFrom(
+            //       side: BorderSide(
+            //         color: AppColors.wakaBlue,
+            //         width: 1.2,
+            //       ),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(24),
+            //       ),
+            //     ),
+            //     child: Text(
+            //       isFollowing ? 'Following' : 'Follow',
+            //       style: GoogleFonts.inter(
+            //         fontSize: 14,
+            //         fontWeight: FontWeight.w600,
+            //         color: AppColors.wakaBlue,
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:waka_fit/core/theme/app_text_styles.dart';
+import 'package:waka_fit/features/home/providers/coach_provider.dart';
 
-class DiscoverScreen extends StatelessWidget {
+class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
+
+  @override
+  State<DiscoverScreen> createState() => _DiscoverScreenState();
+}
+
+class _DiscoverScreenState extends State<DiscoverScreen> {
+
+  
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+    Future<void> _initializeData() async {
+    final provider = Provider.of<CoachProvider>(context, listen: false);
+    if (provider.coaches.isEmpty) {
+      await provider.fetchAllCoaches();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -12,20 +36,22 @@ class DiscoverScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         elevation: 0,
         leading: const BackButton(color: Colors.white),
-        title: const Text("Recommended for You"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
+        title: Text("Recommended for You", style: AppTextStyles.titleLarge,),
+        
       ),
-      body: SingleChildScrollView(
+      body: Consumer<CoachProvider>(
+        builder: (context, coachProvider, child) {
+          if (coachProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (coachProvider.error != null) {
+            return Center(child: Text("Error: ${coachProvider.error}", style: const TextStyle(color: Colors.white),));
+          } else {
+            return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _PersonalizationCard(),
+            // _PersonalizationCard(),
             const SizedBox(height: 24),
 
             Text(
@@ -48,26 +74,21 @@ class DiscoverScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             _TrainerCard(
-              name: "Sarah Chen",
-              specialty: "NASM Certified • Weight Loss Specialist",
+              name: coachProvider.coaches[0].name,
+              specialty: coachProvider.coaches[0].specialties,
               match: 95,
               description:
-                  "Specializes in sustainable weight loss with 10+ years helping clients lose 20–50 lbs safely",
+                  coachProvider.coaches[0].bio,
             ),
 
             const SizedBox(height: 16),
-
-            _TrainerCard(
-              name: "Marcus Johnson",
-              specialty: "Strength & Conditioning • Bodybuilding",
-              match: 92,
-              description:
-                  "Expert in muscle building with proven programs for beginners to advanced lifters",
-            ),
-          ],
+ ],
         ),
+      );}
+        },
       ),
-    );
+      
+      );
   }
 }
 
@@ -203,31 +224,33 @@ class _TrainerCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.cyanAccent,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {},
-                  child: const Text("Follow"),
-                ),
-              ),
-              const SizedBox(width: 12),
-              TextButton(
-                onPressed: () {},
-                child: const Text(
-                  "Tell us why",
-                  style: TextStyle(color: Colors.white54),
-                ),
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: ElevatedButton(
+          //         style: ElevatedButton.styleFrom(
+          //           backgroundColor: Colors.cyanAccent,
+          //           foregroundColor: Colors.black,
+          //           shape: RoundedRectangleBorder(
+          //             borderRadius: BorderRadius.circular(12),
+          //           ),
+          //         ),
+          //         onPressed: () {},
+          //         child: const Text("Follow"),
+          //       ),
+          //     ),
+          //     const SizedBox(width: 12),
+          //     TextButton(
+          //       onPressed: () {},
+          //       child: const Text(
+          //         "Tell us why",
+          //         style: TextStyle(color: Colors.white54),
+          //       ),
+          //     ),
+          //   ],
+          // ),
+        
+        
         ],
       ),
     );
