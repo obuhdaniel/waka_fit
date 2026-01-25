@@ -1,528 +1,401 @@
-// ignore_for_file: use_build_context_synchronously, unused_import, unused_element, avoid_print
-
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
-import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:waka_fit/core/theme/text_extension.dart';
+import 'package:waka_fit/core/theme/app_colors.dart';
 import 'package:waka_fit/features/authentitcation/pages/providers/auth_provider.dart';
-import 'package:waka_fit/features/home/presentation/pages/home_screen.dart';
-import 'package:waka_fit/shared/providers/theme_provider.dart';
-import 'package:waka_fit/shared/providers/utils/secure_storage.dart';
+import 'package:waka_fit/features/home/presentation/pages/main_navigation.dart';
+import 'package:waka_fit/features/onboarding/personalization_screen.dart';
+import 'package:waka_fit/shared/helpers/preferences_manager.dart';
 import 'package:waka_fit/shared/widgets/state_widget.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key, this.initialIsSignUp = false});
-
-  final bool initialIsSignUp;
+  const AuthScreen({super.key});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
-  final green = const Color(0xFF17A34A);
-  final _formKey = GlobalKey<FormState>();
+class _AuthScreenState extends State<AuthScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _logoAnimation;
+  late Animation<double> _contentAnimation;
+  late Animation<Offset> _slideAnimation;
 
-  var logger = Logger();
-
-  late bool isSignUp;
-  bool _authListenerAttached = false;
-  ViewState? _lastAuthState;
-  bool agreeToTerms = false;
-  bool _obscurePassword = true;
-
-  final nameCtrl = TextEditingController();
-  final emailCtrl = TextEditingController();
-  final passwordCtrl = TextEditingController();
-  Timer? _signInDotsTimer;
-  bool _isSigningIn = false;
-  int _signInDotCount = 0;
-  String _signingInLabel = 'Signing in';
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  StreamSubscription<User?>? _authStateSubscription;
+  bool _isGoogleSigningIn = false;
 
   @override
   void initState() {
     super.initState();
-    isSignUp = widget.initialIsSignUp;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<AppAuthProvider>();
-      _lastAuthState = provider.stateData.state;
+    _initializeAnimations();
+    _startAnimations();
+    _setupAuthListener();
+  }
+
+  void _initializeAnimations() {
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _logoAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
+      ),
+    );
+
+    _contentAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+  }
+
+  void _startAnimations() {
+    _animationController.forward();
+  }
+
+  void _setupAuthListener() {
+    // Listen to Firebase auth state changes
+    _authStateSubscription =
+        FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null && mounted) {
+        _handleAuthenticatedUser(user);
+      }
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_authListenerAttached) {
-      _authListenerAttached = true;
-      context.read<AppAuthProvider>().addListener(_authListener);
+  Future<void> _handleAuthenticatedUser(User user) async {
+    
+
+    // Check if setup is completed
+    final prefsManager = PreferencesManager();
+    final isSetupCompleted = await prefsManager.isSetupCompleted();
+
+    // Navigate based on setup status
+    if (mounted) {
+      if (isSetupCompleted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PersonalizationSetupScreen()),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_isGoogleSigningIn) return;
+
+    setState(() => _isGoogleSigningIn = true);
+
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled sign-in
+        setState(() => _isGoogleSigningIn = false);
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in with Firebase
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      
+      // Auth listener will handle the navigation automatically
+    } catch (error) {
+      setState(() => _isGoogleSigningIn = false);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to sign in with Google: ${error.toString()}',
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
   @override
   void dispose() {
-    if (_authListenerAttached) {
-      context.read<AppAuthProvider>().removeListener(_authListener);
-    }
-    _signInDotsTimer?.cancel();
-    nameCtrl.dispose();
-    emailCtrl.dispose();
-    passwordCtrl.dispose();
+    _authStateSubscription?.cancel();
+    _animationController.dispose();
     super.dispose();
-  }
-
-  void _startSigningIn({String? label}) {
-    if (!mounted) return;
-    _signInDotsTimer?.cancel();
-    setState(() {
-      _isSigningIn = true;
-      _signInDotCount = 0;
-      if (label != null) _signingInLabel = label;
-    });
-    _signInDotsTimer =
-        Timer.periodic(const Duration(milliseconds: 400), (timer) {
-      if (!mounted || !_isSigningIn) return;
-      setState(() {
-        _signInDotCount = (_signInDotCount + 1) % 3;
-      });
-    });
-  }
-
-  void _stopSigningIn() {
-    _signInDotsTimer?.cancel();
-    if (!mounted) return;
-    setState(() => _isSigningIn = false);
-  }
-
-  void _authListener() {
-    if (!mounted) return;
-    final provider = context.read<AppAuthProvider>();
-    final nextState = provider.stateData.state;
-    if (nextState == ViewState.error && _lastAuthState != ViewState.error) {
-      final message = isSignUp
-          ? 'Sign up failed. Please sign in again.'
-          : 'Sign in failed. Please sign in again.';
-      _notifySignInAgain(message);
-    }
-    _lastAuthState = nextState;
-  }
-Future<void> _handleGoogleLogin() async {
-  if (_isSigningIn) return;
-  _startSigningIn(label: 'Signing in with Google');
-
-  try {
-    final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
-
-    // Sign in
-    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-    if (googleUser == null) {
-      logger.i('[GoogleLogin] User cancelled sign-in.');
-      return;
-    }
-
-    final googleAuth = await googleUser.authentication;
-
-    // Convert Google token to Firebase credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-
-
-await context.read<AppAuthProvider>().signInWithCredential(credential);
-
-
-  } catch (e, st) {
-    logger.e("Google login failed", error: e, stackTrace: st);
-    _notifySignInAgain("We couldn’t sign you in with Google. Please try again.");
-  } finally {
-    if (mounted) _stopSigningIn();
-  }
-}
-  void _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      logger.w('Could not launch $url');
-    }
-  }
-
-  bool _isStrongPassword(String value) {
-    final regex =
-        RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$');
-    return regex.hasMatch(value);
-  }
-
-  void _notifySignInAgain(String msg) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red,
-        action: SnackBarAction(
-          label: 'Sign In',
-          textColor: Colors.white,
-          onPressed: () {
-            if (!mounted) return;
-            setState(() => isSignUp = false);
-          },
-        ),
-      ),
-    );
-  }
-
-  void _toastError(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.red),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Scaffold(
-      backgroundColor: themeProvider.getBackgroundColor(context),
-      body:  Consumer<AppAuthProvider>(
-        builder: (context, value, child) =>
-        AppStateWidget(
-            stateData: value.stateData,
-            child: Stack(
+      backgroundColor: AppColors.wakaBackground,
+      body: Consumer<AppAuthProvider>(
+        builder: (context, authProvider, child) {
+          return Stack(
+            children: [
+              
+              SafeArea(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 60),
+                        
+                        // Logo with animation
+                        _buildLogoSection(),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Content with animation
+                        _buildContentSection(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Loading overlay for Google sign-in
+              if (_isGoogleSigningIn) _buildLoadingOverlay(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBackground() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.wakaBackground,
+            AppColors.wakaSurface.withOpacity(0.5),
+            AppColors.wakaBackground,
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        ),
+      ),
+      child: Column(
+        children: [
+       Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    AppColors.wakaBlue.withOpacity(0.05),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoSection() {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _logoAnimation.value,
+          child: Opacity(
+            opacity: _logoAnimation.value,
+            child: Column(
               children: [
-                // Background with gradient
+                // Logo container
                 Container(
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: themeProvider.isDarkMode
-                          ? [
-                              const Color(0xFF0F172A),
-                              const Color(0xFF1E293B),
-                              const Color(0xFF334155),
-                            ]
-                          : [
-                              const Color(0xFFF0FDF4),
-                              const Color(0xFFFFFFFF),
-                              const Color(0xFFECFDF5),
-                            ],
-                    ),
-                  ),
-                ),
-        
-                Positioned(
-                  top: -100,
-                  left: -100,
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [
-                          const Color(0xFF10B981)
-                              .withOpacity(themeProvider.isDarkMode ? 0.2 : 0.1),
-                          const Color(0xFF10B981)
-                              .withOpacity(themeProvider.isDarkMode ? 0.1 : 0.05),
-                          Colors.transparent,
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-        
-                Positioned(
-                  bottom: -80,
-                  right: -80,
-                  child: Container(
-                    width: 250,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [
-                          const Color(0xFF059669).withOpacity(
-                              themeProvider.isDarkMode ? 0.15 : 0.08),
-                          const Color(0xFF059669).withOpacity(
-                              themeProvider.isDarkMode ? 0.08 : 0.03),
-                          Colors.transparent,
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-        
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.3,
-                  right: MediaQuery.of(context).size.width * 0.2,
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [
-                          const Color(0xFF10B981).withOpacity(
-                              themeProvider.isDarkMode ? 0.12 : 0.06),
-                          const Color(0xFF10B981).withOpacity(
-                              themeProvider.isDarkMode ? 0.06 : 0.02),
-                          Colors.transparent,
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-        
-                SafeArea(
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 20),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 400),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                    height: 40), // Space for guest button
-                               
-                                const SizedBox(height: 24),
-        
-                                Text(
-                                  'Welcome to Waka FIT',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .myTextStyle
-                                      .copyWith(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF17A34A),
-                                      ),
-                                ),
-        
-                                const SizedBox(height: 8),
-        
-                                Text(
-                                  'Lets help you get started',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .myTextStyle
-                                      .copyWith(
-                                        color: themeProvider
-                                            .getSecondaryTextColor(context),
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16,
-                                        height: 1.4,
-                                      ),
-                                ),
-        
-                                const SizedBox(height: 40),
-        
-                                Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    children: [
-                                     
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: OutlinedButton.icon(
-                                              onPressed: _isSigningIn
-                                                  ? null
-                                                  : _handleGoogleLogin,
-                                              icon: Image.asset(
-                                                'assets/images/google.png',
-                                                height: 24,
-                                                width: 24,
-                                              ),
-                                              label: Text(
-                                                "Google",
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .myTextStyle
-                                                    .copyWith(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w500,
-                                                      color: themeProvider
-                                                          .getTextColor(context),
-                                                    ),
-                                              ),
-                                              style: OutlinedButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 16),
-                                                backgroundColor: themeProvider
-                                                    .getCardColor(context),
-                                                side: BorderSide(
-                                                    color: themeProvider
-                                                        .getBorderColor(context)),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                         
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                    color: AppColors.wakaSurface,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.wakaGreen.withOpacity(0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
                       ),
                     ],
+                    border: Border.all(
+                      color: AppColors.wakaGreen.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(60),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
+                      width: 80,
+                      height: 80,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.fitness_center,
+                            size: 60,
+                            color: AppColors.wakaGreen,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // App name with gradient text
+                ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [
+                      AppColors.wakaGreen,
+                      AppColors.wakaBlue,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ).createShader(bounds),
+                  child: Text(
+                    'WAKA FIT',
+                    style: GoogleFonts.inter(
+                      fontSize: 36,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.0,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-      ),
-        
-      
+        );
+      },
     );
   }
 
-  Widget _buildTabButton(String text, bool isActive, VoidCallback onTap) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF17A34A) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.myTextStyle.copyWith(
-                  color: isActive
-                      ? Colors.white
-                      : themeProvider.getSecondaryTextColor(context),
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-                  fontSize: 14,
+  Widget _buildContentSection() {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return SlideTransition(
+          position: _slideAnimation,
+          child: Opacity(
+            opacity: _contentAnimation.value,
+            child: Column(
+              children: [
+                // Welcome text
+             
+                
+                // Subtitle
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Connect with coaches, find healthy food, and track your fitness journey all in one place',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.wakaTextSecondary,
+                      height: 1.5,
+                    ),
+                  ),
                 ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-    String label, {
-    required TextEditingController controller,
-    IconData? prefixIcon,
-    bool obscureText = false,
-    TextInputType? keyboardType,
-  }) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    String? emailValidator(String? value) {
-      if (value == null || value.isEmpty) {
-        return 'Please enter your $label';
-      }
-      // if (label.toLowerCase().contains('email')) {
-      //   final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-      //   if (!emailRegex.hasMatch(value.trim())) {
-      //     return 'Please enter a valid email address';
-      //   }
-      // }
-      return null;
-    }
-
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      style: Theme.of(context).textTheme.myTextStyle.copyWith(
-            fontSize: 16,
-            color: themeProvider.getTextColor(context),
-          ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: Theme.of(context).textTheme.myTextStyle.copyWith(
-              color: themeProvider.getSecondaryTextColor(context),
-              fontSize: 14,
+                
+                const SizedBox(height: 48),
+                
+                // Google Sign In Button
+                _buildGoogleSignInButton(),
+                
+                const SizedBox(height: 24),
+                
+                
+                const SizedBox(height: 24),
+                
+                // Terms and Privacy
+                _buildTermsAndPrivacy(),
+              ],
             ),
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon,
-                color: themeProvider.getSecondaryTextColor(context), size: 20)
-            : null,
-        filled: true,
-        fillColor: themeProvider.getCardColor(context),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: themeProvider.getBorderColor(context)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: themeProvider.getBorderColor(context)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF059669), width: 2),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: emailValidator,
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSigningInIndicator(ThemeProvider themeProvider) {
-    final dots = '.' * (_signInDotCount + 1);
-    return AnimatedOpacity(
-      opacity: _isSigningIn ? 1 : 0,
-      duration: const Duration(milliseconds: 200),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: themeProvider.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: themeProvider.getBorderColor(context)),
+  Widget _buildGoogleSignInButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isGoogleSigningIn ? null : _handleGoogleSignIn,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.wakaSurface,
+          foregroundColor: AppColors.wakaTextPrimary,
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: AppColors.wakaStroke,
+              width: 1.5,
+            ),
+          ),
+          elevation: 0,
+          shadowColor: Colors.transparent,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 18,
-              width: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor:
-                    AlwaysStoppedAnimation(themeProvider.getTextColor(context)),
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/google.png'),
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Text(
-              '$_signingInLabel$dots',
-              style: Theme.of(context).textTheme.myTextStyle.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: themeProvider.getTextColor(context),
-                  ),
+              _isGoogleSigningIn ? 'Signing in...' : 'Continue with Google',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -530,67 +403,152 @@ await context.read<AppAuthProvider>().signInWithCredential(credential);
     );
   }
 
-    Widget _buildPasswordField(
-    String label, {
-    required TextEditingController controller,
-    IconData? prefixIcon,
-  }) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(
+          child: Divider(
+            color: AppColors.wakaTextSecondary.withOpacity(0.2),
+            thickness: 1,
+          ),
+        ),
+      
+        Expanded(
+          child: Divider(
+            color: AppColors.wakaTextSecondary.withOpacity(0.2),
+            thickness: 1,
+          ),
+        ),
+      ],
+    );
+  }
 
-    return TextFormField(
-      controller: controller,
-      obscureText: _obscurePassword,
-      style: Theme.of(context).textTheme.myTextStyle.copyWith(
-            fontSize: 16,
-            color: themeProvider.getTextColor(context),
-          ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: Theme.of(context).textTheme.myTextStyle.copyWith(
-              color: themeProvider.getSecondaryTextColor(context),
-              fontSize: 14,
+  Widget _buildTermsAndPrivacy() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Text(
+            'By continuing, you agree to our Terms of Service and Privacy Policy',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: AppColors.wakaTextSecondary.withOpacity(0.7),
+              height: 1.4,
             ),
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon,
-                color: themeProvider.getSecondaryTextColor(context), size: 20)
-            : null,
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
-            color: themeProvider.getSecondaryTextColor(context),
-            size: 20,
           ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
         ),
-        filled: true,
-        fillColor: themeProvider.getCardColor(context),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: themeProvider.getBorderColor(context)),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () {
+                // Navigate to Terms of Service
+              },
+              child: Text(
+                'Terms of Service',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.wakaBlue,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Container(
+              width: 4,
+              height: 4,
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.wakaTextSecondary.withOpacity(0.5),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                // Navigate to Privacy Policy
+              },
+              child: Text(
+                'Privacy Policy',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.wakaBlue,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: themeProvider.getBorderColor(context)),
+      ],
+    );
+  }
+
+  Widget _buildLoadingOverlay() {
+    return Container(
+      color: AppColors.wakaBackground.withOpacity(0.8),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.wakaSurface,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.wakaGreen.withOpacity(0.3),
+                    blurRadius: 20,
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.wakaGreen,
+                            AppColors.wakaBlue,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.fitness_center,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(AppColors.wakaGreen),
+                      strokeWidth: 3,
+                      backgroundColor: Colors.transparent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Setting up your fitness profile...',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                color: AppColors.wakaTextPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF059669), width: 2),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your $label';
-        }
-        return null;
-      },
     );
   }
 }
